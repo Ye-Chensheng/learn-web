@@ -1,4 +1,4 @@
-# GitHub 版本控制与协作指南：从入门到工程化
+# GitHub 版本控制与协作
 
 ## 1. 核心概念与工作流 (Core Concepts)
 
