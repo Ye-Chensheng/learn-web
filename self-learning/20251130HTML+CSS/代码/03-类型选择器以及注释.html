@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>类型选择器以及注释</title>
+  <style>
+    /* 添加注释  ctrl+ /  */
+    div {
+      /* 设置文本颜色为粉色 */
+      color: pink;
+      /* 设置字体大小为20像素 */
+      font-size: 20px;
+    }
+
+    li {
+      color: blue;
+      /* 字体大小 */
+      font-size: 20px;
+    }
+
+    /* 就近原则   层叠性 */
+    div {
+      color: red;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 类型选择器  标签选择器 元素选择器-->
+  <div>大春</div>
+  <div>夏洛</div>
+  <div>秋雅</div>
+  <div>冬梅</div>
+  <ul>
+    <li>猪爸爸</li>
+    <li>猪妈妈</li>
+    <li>佩奇</li>
+    <li>乔治</li>
+  </ul>
+</body>
+
+</html>

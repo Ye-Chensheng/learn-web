@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>字体样式</title>
+  <style>
+    /*1. 字体颜色 */
+    .pink {
+      color: pink;
+    }
+
+    .color16 {
+      /* color: #f00; */
+      color: #2CB5A5;
+    }
+
+    .rgb {
+      color: rgb(255, 0, 0);
+    }
+
+    /* 半透明  0是完全透明  1是完全不透明 */
+    .rgba {
+      color: rgba(255, 0, 0, .5);
+      background-color: green;
+    }
+
+    /* 文字透明 */
+
+    /* 2. 字体族 */
+    .font {
+      font-family: 微软雅黑;
+    }
+
+    /* 3. 字体大小 */
+    .font12 {
+      font-size: 12px;
+    }
+
+    .font14 {
+      font-size: 14px;
+    }
+
+    .fong16 {
+      font-size: 16px;
+    }
+
+    /* 4. 字体样式倾斜 */
+    .italic {
+      font-style: italic;
+    }
+
+    .normal {
+      font-style: normal;
+    }
+
+    /* 5. 字体粗细 */
+    .nobold {
+      /* font-weight: normal; */
+      font-weight: 400;
+    }
+
+    .bold {
+      /* font-weight: 700; */
+      font-weight: bold;
+    }
+
+    /* 6. 字体装饰 */
+    a {
+      text-decoration: none;
+    }
+
+    .underline {
+      text-decoration: underline;
+    }
+
+    .overline {
+      text-decoration: overline;
+    }
+
+    .line-through {
+      text-decoration: line-through;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 字体样式 -->
+  <!-- 1. 字体颜色 -->
+  <h2>1.字体颜色</h2>
+  <p class="pink">字体颜色可以使用颜色名称设置</p>
+  <p class="color16">字体颜色可以使用十六进制颜色值设置</p>
+  <p class="rgb">字体颜色可以使用rgb或者rgba设置</p>
+  <p class="rgba">文字可以半透明</p>
+  <!--2. 字体族 -->
+  <h2>2.设置字体族</h2>
+  <p class="font">字体族可以使用字体名称设置</p>
+  <!--3. 字体大小 -->
+  <h2>3.设置字体大小</h2>
+  <p class="font12">字体大小可以使用px设置</p>
+  <p class="font14">字体大小可以使用px设置</p>
+  <p class="fong16">字体大小可以使用px设置</p>
+  <h2>4.设置字体样式倾斜</h2>
+  <p class="italic">字体样式倾斜可以使用italic设置</p>
+  <em class="normal">字体样式取消倾斜可以使用normal设置</em>
+  <!--4. 字体粗细 -->
+  <h2 class="nobold">5.设置字体粗细</h2>
+  <p class="bold">字体粗细可以使用关键字</p>
+  <p class="bold">字体粗细可以使用数字</p>
+  <!--5. 字体样式倾斜 -->
+
+  <!--6. 字体装饰 -->
+  <h2>6.设置字体装饰</h2>
+  <p class="underline">字体装饰可以使用underline下划线设置</p>
+  <p class="overline">字体装饰可以使用overline上划线设置</p>
+  <p class="line-through">字体装饰可以使用line-through删除线设置</p>
+  <a href="#">链接可使用none取消下划线</a>
+</body>
+
+</html>

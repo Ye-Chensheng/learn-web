@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>属性选择器</title>
+  <style>
+    a {
+      color: #000;
+      text-decoration: none;
+    }
+
+    /* 属性选择器 */
+    /* 1. 选择包含属性 */
+    /* a[class] {
+      color: red;
+    } */
+
+    /* 2. 选择属性等于值  完全匹配 */
+    /* a[class="font"] {
+      color: red;
+    } */
+
+    /* 3. 选择属性值以xx开头 */
+    /* a[class^="font"] {
+      color: red;
+    } */
+
+    /* 4. 选择属性值以xx结尾 */
+    /* a[class$=t14] {
+      color: red;
+    } */
+
+    /* 5. 选择属性值包含xx */
+    a[class*="font"] {
+      color: red;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      /* 去掉轮廓线 */
+      outline: none;
+    }
+  </style>
+</head>
+
+<body>
+  <a href="#">修改文字颜色</a> <br>
+  <a href="#" class="font">修改文字颜色</a> <br>
+  <a href="#" class="font14">修改文字颜色</a> <br>
+  <a href="#" class="font16">修改文字颜色</a> <br>
+  <a href="#" class="red">修改文字颜色</a> <br>
+
+  <input type="text">
+  <input type="password">
+  <input type="checkbox">
+  <input type="radio">
+</body>
+
+</html>

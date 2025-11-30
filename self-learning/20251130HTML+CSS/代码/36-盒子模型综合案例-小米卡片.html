@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>综合案例-小米卡片</title>
+  <style>
+    /* css初始化 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #ccc;
+    }
+
+    .cart {
+      width: 234px;
+      height: 300px;
+      background-color: #fff;
+      margin: 100px auto;
+      text-align: center;
+      transition: all .4s;
+    }
+
+    .cart:hover {
+      box-shadow: 0 15px 30px rgba(0, 0, 0, .1);
+    }
+
+    .cart img {
+      width: 160px;
+      height: 160px;
+      margin-top: 20px;
+    }
+
+    .cart .title {
+      font-size: 14px;
+      font-weight: 400;
+      color: #333;
+      margin-top: 18px;
+    }
+
+    .cart .desc {
+      font-size: 12px;
+      color: #b0b0b0;
+      /* 单行文本溢出省略 */
+      /* 溢出隐藏 */
+      overflow: hidden;
+      /* 文本溢出显示省略号 */
+      text-overflow: ellipsis;
+      /* 强制文字一行显示， 不换行 */
+      white-space: nowrap;
+      padding: 0 10px;
+    }
+
+    .cart .price {
+      font-size: 14px;
+      color: #b0b0b0;
+      margin-top: 10px;
+    }
+
+    .cart .price span {
+      color: #ff6700;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="cart">
+    <img src="./img/mi.webp" alt="">
+    <h3 class="title"> xiaomi Buds 5</h3>
+    <p class="desc">舒适无感佩戴｜高通全链路无损音频｜哈曼 AudioEFX 联合调音</p>
+    <p class="price">
+      <span>659元</span>
+      <del>699元</del>
+    </p>
+  </div>
+  <div class="cart">
+    <img src="./img/mi.webp" alt="">
+    <h3 class="title"> xiaomi Buds 5</h3>
+    <p class="desc">舒适无感佩戴｜高通全链路无损音频｜哈曼 AudioEFX 联合调音</p>
+    <p class="price">
+      <span>659元</span>
+      <del>699元</del>
+    </p>
+  </div>
+  <div class="cart">
+    <img src="./img/mi.webp" alt="">
+    <h3 class="title"> xiaomi Buds 5</h3>
+    <p class="desc">舒适无感佩戴｜高通全链路无损音频｜哈曼 AudioEFX 联合调音</p>
+    <p class="price">
+      <span>659元</span>
+      <del>699元</del>
+    </p>
+  </div>
+</body>
+
+</html>

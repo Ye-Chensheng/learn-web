@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>盒子阴影</title>
+  <style>
+    .box {
+      width: 200px;
+      height: 200px;
+      background-color: pink;
+      margin: 100px auto;
+      /* 盒子阴影: 水平偏移量  垂直偏移量  模糊距离  扩散距离  阴影颜色 */
+      /* box-shadow: 0 0 10px 10px rgba(0, 0, 0, 0.5); */
+      /* box-shadow: rgba(0, 0, 0, 0.1) 0px 15px 30px; */
+      /* 过渡写到盒子身上。 谁做过渡给谁加 */
+      transition: all .3s;
+    }
+
+    .box:hover {
+      width: 220px;
+      height: 220px;
+      box-shadow: rgba(0, 0, 0, 0.3) 0px 15px 30px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box"></div>
+</body>
+
+</html>

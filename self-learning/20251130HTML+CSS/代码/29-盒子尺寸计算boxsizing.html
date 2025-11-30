@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>盒子尺寸计算box-sizing</title>
+  <style>
+    /* * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    } */
+    .box1 {
+      width: 140px;
+      height: 140px;
+      background-color: pink;
+      box-sizing: content-box;
+      border: 10px solid red;
+      padding: 20px;
+    }
+
+    .box2 {
+      width: 200px;
+      height: 200px;
+      background-color: pink;
+      box-sizing: border-box;
+      border: 10px solid red;
+      padding: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box1">content-box</div>
+  <div class="box2">border-box</div>
+</body>
+
+</html>

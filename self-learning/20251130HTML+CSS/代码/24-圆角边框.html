@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>圆角边框</title>
+  <style>
+    .radius1 {
+      width: 100px;
+      height: 100px;
+      background-color: pink;
+      /* border-radius: 10px; */
+      /* border-radius: 50px; */
+      border-radius: 50%;
+    }
+
+    .radius2 {
+      width: 200px;
+      height: 80px;
+      background-color: pink;
+      border-radius: 40px;
+    }
+
+    .radius3 {
+      width: 200px;
+      height: 40px;
+      background-color: skyblue;
+      border-radius: 20px;
+      /* 胶囊按钮 设置圆角为 宽度或者高度较小值的一半 就可以实现 */
+    }
+
+    .radius4 {
+      width: 40px;
+      height: 200px;
+      background-color: skyblue;
+      border-radius: 20px;
+      /* 胶囊按钮 设置圆角为 宽度或者高度的较小值一半 就可以实现 */
+    }
+
+    .jia {
+      border-radius: 50%;
+    }
+
+    .radius5 {
+      width: 100px;
+      height: 100px;
+      background-color: pink;
+      border-radius: 10px;
+    }
+
+    .radius6 {
+      width: 100px;
+      height: 100px;
+      background-color: orange;
+      border-radius: 10px 30px;
+    }
+
+    .radius7 {
+      width: 100px;
+      height: 100px;
+      background-color: pink;
+      border-radius: 10px 30px 50px;
+    }
+
+    .radius8 {
+      width: 100px;
+      height: 100px;
+      background-color: pink;
+      border-radius: 10px 30px 50px 70px;
+    }
+
+    .xia {
+      border-radius: 10px 0;
+      border: 2px solid skyblue;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="radius1"></div>
+  <div class="radius2"></div>
+  <div class="radius3">胶囊按钮</div>
+  <div class="radius4"></div>
+  <img src="./img/w1.webp" alt="" class="jia">
+  <div class="radius5">一个值</div>
+  <div class="radius6">两个值</div>
+  <div class="radius7">三个值</div>
+  <div class="radius8">四个值</div>
+
+  <img src="./img/w3.webp" alt="" class="xia">
+
+</body>
+
+</html>

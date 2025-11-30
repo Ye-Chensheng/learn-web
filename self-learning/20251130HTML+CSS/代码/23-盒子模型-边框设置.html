@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>盒子模型-边框设置</title>
+  <style>
+    div[class*="box"] {
+      width: 200px;
+      height: 200px;
+      margin: 20px;
+    }
+
+    .box1 {
+      border: 1px solid red;
+    }
+
+    .box2 {
+      border: 1px dashed red;
+    }
+
+    .box3 {
+      border: 1px dotted red;
+    }
+
+    .box4 {
+      border-top: 2px solid red;
+      border-bottom: 3px dotted green;
+      border-left: 4px dashed blue;
+      border-right: 5px solid pink;
+    }
+
+    .box5 {
+      /* border-top: 3px solid #ff8400;
+      border-left: 1px solid #d9e0ee;
+      border-right: 1px solid #d9e0ee;
+      border-bottom: 1px solid #d9e0ee; */
+      border: 1px solid #d9e0ee;
+      border-top: 3px solid #ff8400;
+    }
+
+    h2 {
+      border-bottom: 3px solid #ff8400;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box1">实线边框</div>
+  <SPAN>实现边框换行了么</SPAN>
+    <SPAN>实现边框换行了么</SPAN>
+  <div class="box2">虚线边框</div>
+  <div class="box3">点线边框</div>
+  <div class="box4">不同边框1</div>
+  <div class="box5">不同边框2</div>
+  <h2>单边框</h2>
+
+</body>
+
+</html>

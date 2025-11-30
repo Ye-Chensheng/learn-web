@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS权重优先级</title>
+  <style>
+    #header {
+      color: purple;
+    }
+
+    * {
+      /* color: red !important; */
+    }
+
+    div {
+      color: blue;
+    }
+
+    .box {
+      color: green;
+    }
+
+    .nav {
+      text-decoration: none;
+    }
+
+    .nav ul li a {
+      color: red;
+      text-decoration: none;
+    }
+
+    span {
+      color: blue;
+    }
+
+    p {
+      color: red;
+    }
+
+    header {
+      font-weight: 400;
+    }
+
+    h1 {
+      font-weight: 400;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box" id="header" style="color: pink;">CSS权重优先级</div>
+  <div class="nav">
+    <ul>
+      <li><a href="#">首页</a></li>
+    </ul>
+  </div>
+
+  <!-- 继承的权重是0 -->
+  <p><span>文字</span></p>
+
+  <!-- 比如h 和链接 浏览器有自己默认的样式 -->
+  <header>
+    <h1>我是一级标题</h1>
+  </header>
+</body>
+
+</html>

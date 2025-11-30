@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>盒子背景</title>
+  <style>
+    body {
+      height: 1500px;
+    }
+
+    .box {
+      width: 400px;
+      height: 400px;
+      /* background-color: pink; */
+      /* 背景图片 */
+      /* background-image: url(./img/ldh.png); */
+      /* 背景平铺 */
+      /* background-repeat: no-repeat; */
+      /* background-repeat: repeat-x; */
+      /* background-repeat: repeat-y; */
+      /* 背景位置 */
+      /* background-position: x y; */
+      /* background-position: 50px 10px; */
+      /* background-position: 50% 50%; */
+      /* 方位名词 top  bottom  left  right  center */
+      /* background-position: left top; */
+      /* background-position: right bottom; */
+      /* background-position: center center; */
+      /* 如果只写一个值，则第二个值是y省略了，默认是 center */
+      /* background-position: center; */
+      /* background-position: left; */
+
+      /* 背景缩放 尺寸 */
+      /* background-size: cover; 覆盖 */
+      /* background-size: contain; 包含 */
+      /* background-size: 300px; */
+      /* 背景固定 滚动的  scroll 滚动的  fixed 固定的  相对于当前视口 */
+      /* background-attachment: scroll; */
+      /* background-attachment: fixed; */
+      /* 复合写法 */
+      background: pink url(./img/ldh.png) no-repeat center center/200px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box">123</div>
+</body>
+
+</html>

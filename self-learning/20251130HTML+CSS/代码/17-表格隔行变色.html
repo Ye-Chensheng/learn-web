@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>表格隔行变色</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    .data {
+      /* 合并相邻边框 */
+      border-collapse: collapse;
+
+      /* 边框 1像素  实线  颜色 */
+      border: 1px solid #f1f1f1;
+      width: 400px;
+      margin: 0 auto;
+      /* 让表格里面的文字水平居中 */
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .data tr {
+      height: 35px;
+    }
+
+    /* 表格第一行 */
+    .data tr:first-child {
+      background-color: #8fbcf1 !important;
+      color: #fff;
+    }
+
+    /* 让奇数行改为隔行变色 背景颜色 */
+    .data tr:nth-child(odd) {
+      background-color: #f9f9f9;
+    }
+
+
+
+
+    /* 鼠标经过  背景色 #f1f1f1 */
+    .data tr:hover {
+      background-color: #f1f1f1;
+    }
+
+    /* 第一行  背景色#8fbcf1; */
+    /* 隔行变色  背景色 #f9f9f9  
+    鼠标经过  背景色 #f1f1f1 */
+  </style>
+</head>
+
+<body>
+
+  <table class="data">
+    <tr>
+      <th>姓名</th>
+      <th>数据</th>
+      <th>日期</th>
+    </tr>
+    <tr>
+      <td>杨瀚森</td>
+      <td>10分</td>
+      <td>2025年7月12日</td>
+    </tr>
+    <tr>
+      <td>易建联</td>
+      <td>9分</td>
+      <td>2007年10月31日</td>
+    </tr>
+    <tr>
+      <td>王治郅</td>
+      <td>6分</td>
+      <td>2001年4月6日</td>
+    </tr>
+    <tr>
+      <td>孙悦</td>
+      <td>4分</td>
+      <td>2008年12月8日</td>
+    </tr>
+    <tr>
+      <td>周琦</td>
+      <td>2分</td>
+      <td>2018年10月31日</td>
+    </tr>
+    <tr>
+      <td>姚明</td>
+      <td>0分</td>
+      <td>2002年10月31日</td>
+    </tr>
+    <tr>
+      <td>崔永熙</td>
+      <td>1分</td>
+      <td>2024年10月28日</td>
+    </tr>
+
+</body>
+
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>背景渐变</title>
+  <style>
+    .box {
+      width: 300px;
+      height: 200px;
+
+      /* background-color: pink; */
+      /* background: linear-gradient(to top, pink, red); */
+      /* deg 角度  90deg 就是 90度 */
+      /* background: linear-gradient(90deg, pink, red); */
+      /* 位置 是色标的位置 */
+      /* background: linear-gradient(90deg, pink 50%, red 50%); */
+      /* background: linear-gradient(180deg, #3ECEC5D8 0%, #26BCC6 100%); */
+      background-image: linear-gradient(180deg, #3ECEC5D8 0%, #26BCC6 100%);
+
+
+    }
+
+    .text {
+      font-size: 30px;
+      font-weight: 700;
+      /* 渐变背景文字 */
+      background-image: linear-gradient(97deg, #0096FF, #BB64FF 42%, #F2416B 74%, #EB7500);
+      /* -webkit- 前缀  谷歌浏览器老版本的兼容性写法 */
+      -webkit-background-clip: text;
+      /* 背景裁剪 以文字的形式裁剪 */
+      background-clip: text;
+      /* 文本填充颜色 为透明 */
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* 添加按钮渐变样式 */
+    .gradient-btn {
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box"></div>
+  <div class="text">我是渐变的文字，你喜欢吗？</div>
+  <button class="gradient-btn">搜索</button>
+</body>
+
+</html>

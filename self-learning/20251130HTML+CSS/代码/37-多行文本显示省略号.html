@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>多行文本显示省略号</title>
+  <style>
+    .box {
+      width: 200px;
+      height: 48px;
+      background-color: pink;
+      /* 多行文本溢出显示省略号   修改盒子高度为 正好显示行数的高度*/
+      /* 旧版弹性盒子布局 */
+      display: -webkit-box;
+      /* 文本垂直排列 */
+      -webkit-box-orient: vertical;
+      /* 限制显示行数 */
+      -webkit-line-clamp: 2;
+      /* 隐藏溢出内容 */
+      overflow: hidden;
+      /* 文本溢出显示省略号 */
+      text-overflow: ellipsis;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box">"小妖怪的夏天"团队！动画电影《浪浪山小妖怪》新预告，取经赛道的离谱组合值得期待</div>
+</body>
+
+</html>

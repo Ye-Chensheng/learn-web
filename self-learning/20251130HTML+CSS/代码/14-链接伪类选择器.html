@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>链接伪类选择器</title>
+  <style>
+    /* 链接伪类 */
+    /* 未访问链接 */
+    a:link {
+      color: #000;
+      text-decoration: none;
+    }
+
+    /* 已访问链接 */
+    a:visited {
+      color: orange;
+      text-decoration: none;
+    }
+
+    /* 鼠标悬停链接 */
+    a:hover {
+      color: red;
+      text-decoration: underline;
+    }
+
+    /* 被点击的状态 */
+    a:active {
+      color: blue;
+      text-decoration: none;
+    }
+
+    /* 一般开发我们这样写 */
+    /* a {
+      text-decoration: none;
+      color: #000;
+    }
+
+    a:hover {
+      color: red;
+      text-decoration: underline;
+    } */
+  </style>
+</head>
+
+<body>
+  <a href="https://www.deepseek1.com">deepseek一下</a>
+  <a href="#">产品介绍</a>
+  <a href="#">联系方式</a>
+</body>
+
+</html>

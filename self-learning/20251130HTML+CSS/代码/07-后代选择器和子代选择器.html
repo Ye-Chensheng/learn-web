@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>后代选择器和子代选择器</title>
+  <style>
+    /* a {
+      color: red;
+    } */
+    /* 后代选择器 */
+    /* div a {
+      color: red;
+    } */
+    .footer a {
+      color: pink;
+    }
+
+    /* ul li a {
+      color: red;
+      font-size: 20px;
+    } */
+    .nav li a {
+      color: red;
+      font-size: 20px;
+    }
+
+    /* div span {
+      color: green;
+    } */
+    /* 子代选择器只选择亲儿子 */
+    /* div>span {
+      color: green;
+    } */
+    .box>span {
+      color: green;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 后代选择器 -->
+  <ul class="nav">
+    <li><a href="#">首页</a></li>
+    <li><a href="#">产品介绍</a></li>
+    <li><a href="#">合作模式</a></li>
+  </ul>
+  <div class="footer">
+    <a href="#">关于我们</a>
+    <a href="#">联系我们</a>
+    <a href="#">隐私政策</a>
+  </div>
+
+
+  <!-- 子代选择器 -->
+  <div class="box">
+    <span>我是儿子</span>
+    <span>我是儿子</span>
+    <p>
+      <span>我是孙子</span>
+    </p>
+  </div>
+</body>
+
+</html>

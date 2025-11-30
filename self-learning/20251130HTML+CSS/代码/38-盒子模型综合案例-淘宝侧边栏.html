@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>盒子综合案例-淘宝侧边栏</title>
+  <link rel="stylesheet" href="./iconfont1/iconfont.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    a {
+      color: #1f1f1f;
+      text-decoration: none;
+    }
+
+    ol,
+    ul {
+      /* 取消列表的小圆点 */
+      list-style: none;
+    }
+
+    .service {
+      width: 256px;
+      height: 400px;
+      background-color: #f7f7f7;
+      border-radius: 12px;
+      margin: 100px auto;
+    }
+
+    .service-title {
+      line-height: 32px;
+      padding: 8px 0 0 16px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f1f1f;
+    }
+
+    .service-title img {
+      width: 60px;
+      height: 20px;
+      margin-left: 4px;
+    }
+
+    .service-bd li {
+      height: 32px;
+      line-height: 32px;
+      /* background-color: pink; */
+      margin: 0 8px;
+      border-radius: 4px;
+      transition: all .5s;
+      padding-left: 10px;
+    }
+
+    /* 第一个li 里面的文字要改为红色 */
+    /* .service-bd li:first-child {
+      color: #ff5000;
+    }
+
+    .service-bd li:first-child a {
+      color: #ff5000;
+    } */
+
+    .service-bd li:first-child,
+    .service-bd li:first-child a {
+      color: #ff5000;
+    }
+
+    .service-bd li i {
+      margin-right: 4px;
+    }
+
+    .service-bd li:hover {
+      background-color: #fff;
+    }
+
+    .service-bd li a {
+      font-size: 14px;
+    }
+
+    .service-bd li a:hover {
+      color: #ff5000;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="service">
+    <!-- 分类模块 -->
+    <div class="service-title">
+      <span>分类</span>
+      <img src="./img/888.gif" alt="">
+    </div>
+    <!-- 服务主体模块 -->
+    <ul class="service-bd">
+      <li>
+        <i class="iconfont icon-huore"></i>
+        <a href="#">超级88大促</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">钱生钱补贴</a>
+      </li>
+      <li>
+        <i class="iconfont icon-diannao"></i>
+        <a href="#">电脑</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">手机</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">智能</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">电视</a>
+      </li>
+      <li>
+        <i class="iconfont icon-diannao"></i>
+        <a href="#">电脑</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">手机</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">智能</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">电视</a>
+      </li>
+      <li>
+        <i class="iconfont icon-diannao"></i>
+        <a href="#">电脑</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">手机</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">智能</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">电视</a>
+      </li>
+      <li>
+        <i class="iconfont icon-diannao"></i>
+        <a href="#">电脑</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">手机</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">智能</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">电视</a>
+      </li>
+      <li>
+        <i class="iconfont icon-diannao"></i>
+        <a href="#">电脑</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">手机</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">智能</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">电视</a>
+      </li>
+      <li>
+        <i class="iconfont icon-diannao"></i>
+        <a href="#">电脑</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">手机</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">智能</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">电视</a>
+      </li>
+      <li>
+        <i class="iconfont icon-diannao"></i>
+        <a href="#">电脑</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">手机</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">智能</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">电视</a>
+      </li>
+      <li>
+        <i class="iconfont icon-diannao"></i>
+        <a href="#">电脑</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">手机</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">智能</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">电视</a>
+      </li>
+      <li>
+        <i class="iconfont icon-diannao"></i>
+        <a href="#">电脑</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">手机</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">智能</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">电视</a>
+      </li>
+      <li>
+        <i class="iconfont icon-diannao"></i>
+        <a href="#">电脑</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">手机</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">智能</a>
+        <span class="iconfont icon-xiexian"></span>
+        <a href="#">电视</a>
+      </li>
+    </ul>
+  </div>
+</body>
+
+</html>

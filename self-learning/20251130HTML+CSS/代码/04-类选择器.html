@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>类选择器</title>
+  <style>
+    /* 类选择器  选择一个或者多个元素  实现差异化选择*/
+    .pink {
+      color: pink;
+    }
+
+    /* 类选择器的权重（优先级）高于 类型选择器（标签选择器） */
+    div {
+      color: red;
+    }
+
+    .sub-nav {
+      font-size: 20px;
+    }
+
+    .product {
+      color: blue;
+    }
+
+    .price {
+      color: red;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="pink">大春</div>
+  <div class="sub-nav">夏洛</div>
+  <div>秋雅</div>
+  <div class="pink sub-nav">冬梅</div>
+
+  <!-- 产品模块 -->
+  <div class="product">
+    <h2>产品模块</h2>
+  </div>
+  <!-- 价格模块 -->
+  <div class="price">
+    <h2>价格模块</h2>
+  </div>
+</body>
+
+</html>
