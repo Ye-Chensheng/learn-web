@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一层改造后平面图 - 3D 立体模型</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+        #container {
+            width: 100vw;
+            height: 100vh;
+        }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            max-width: 350px;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        #info h2 {
+            margin-bottom: 10px;
+            color: #4fc3f7;
+            font-size: 18px;
+        }
+        #info p {
+            margin: 5px 0;
+            line-height: 1.6;
+        }
+        #info .highlight {
+            color: #ffeb3b;
+            font-weight: bold;
+        }
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 25px;
+            border-radius: 10px;
+            z-index: 100;
+            display: flex;
+            gap: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        #controls button {
+            background: #4fc3f7;
+            border: none;
+            color: #1a1a2e;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        #controls button:hover {
+            background: #81d4fa;
+            transform: translateY(-2px);
+        }
+        #legend {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        #legend h3 {
+            margin-bottom: 10px;
+            color: #4fc3f7;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            gap: 10px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+        #dimensions {
+            position: absolute;
+            bottom: 80px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        #dimensions h3 {
+            margin-bottom: 10px;
+            color: #4fc3f7;
+        }
+        #dimensions table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        #dimensions td {
+            padding: 4px 8px;
+        }
+        #dimensions td:first-child {
+            color: #aaa;
+        }
+        #dimensions td:last-child {
+            color: #ffeb3b;
+            font-weight: bold;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    
+    <div id="info">
+        <h2>🏢 一层改造后平面图 - 3D 模型</h2>
+        <p>比例尺：<span class="highlight">1:100</span></p>
+        <p>总长度：<span class="highlight">50.5 米</span> (1-8 轴)</p>
+        <p>总宽度：<span class="highlight">14.8 米</span> (A-E 轴)</p>
+        <p>建筑面积：<span class="highlight">约 750㎡</span></p>
+        <p style="margin-top: 10px; color: #aaa;">🖱️ 左键旋转 | 右键平移 | 滚轮缩放</p>
+    </div>
+
+    <div id="legend">
+        <h3>📋 图例</h3>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #e3f2fd;"></div>
+            <span>办公区</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #fff3e0;"></div>
+            <span>会议室</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #e8f5e9;"></div>
+            <span>独立办公室</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #fce4ec;"></div>
+            <span>门厅/走廊</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #90a4ae;"></div>
+            <span>卫生间/楼梯</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #8d6e63; height: 4px; width: 30px;"></div>
+            <span>墙体</span>
+        </div>
+    </div>
+
+    <div id="dimensions">
+        <h3>📏 轴网尺寸</h3>
+        <table>
+            <tr><td>1-2 轴</td><td>7,800 mm</td></tr>
+            <tr><td>2-3 轴</td><td>7,800 mm</td></tr>
+            <tr><td>3-4 轴</td><td>7,800 mm</td></tr>
+            <tr><td>4-5 轴</td><td>7,800 mm</td></tr>
+            <tr><td>5-6 轴</td><td>3,300 mm</td></tr>
+            <tr><td>6-7 轴</td><td>7,800 mm</td></tr>
+            <tr><td>7-8 轴</td><td>7,800 mm</td></tr>
+            <tr><td colspan="2" style="border-top: 1px solid #555; padding-top: 8px;"></td></tr>
+            <tr><td>A-B 轴</td><td>7,000 mm</td></tr>
+            <tr><td>B-C 轴</td><td>6,400 mm</td></tr>
+            <tr><td>C-D 轴</td><td>2,100 mm</td></tr>
+            <tr><td>D-E 轴</td><td>2,000 mm</td></tr>
+        </table>
+    </div>
+
+    <div id="controls">
+        <button onclick="setView('top')">📐 俯视图</button>
+        <button onclick="setView('front')">🏢 正视图</button>
+        <button onclick="setView('side')">📏 侧视图</button>
+        <button onclick="setView('iso')">🎯 轴测图</button>
+        <button onclick="toggleWalls()">🧱 切换墙体</button>
+        <button onclick="toggleLabels()">🏷️ 切换标注</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <script>
+        // 场景初始化
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a2e);
+        
+        // 相机
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 10000);
+        camera.position.set(50, 80, 50);
+        
+        // 渲染器
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.getElementById('container').appendChild(renderer.domElement);
+        
+        // 轨道控制器
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxPolarAngle = Math.PI / 2.1;
+        
+        // 灯光
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(50, 100, 50);
+        directionalLight.castShadow = true;
+        scene.add(directionalLight);
+        
+        // 材质定义
+        const materials = {
+            wall: new THREE.MeshLambertMaterial({ color: 0x8d6e63 }),
+            floor: new THREE.MeshLambertMaterial({ color: 0xd7ccc8 }),
+            office: new THREE.MeshLambertMaterial({ color: 0xe3f2fd }),
+            meeting: new THREE.MeshLambertMaterial({ color: 0xfff3e0 }),
+            room: new THREE.MeshLambertMaterial({ color: 0xe8f5e9 }),
+            lobby: new THREE.MeshLambertMaterial({ color: 0xfce4ec }),
+            utility: new THREE.MeshLambertMaterial({ color: 0x90a4ae }),
+            glass: new THREE.MeshPhongMaterial({ 
+                color: 0x81d4fa, 
+                transparent: true, 
+                opacity: 0.4,
+                side: THREE.DoubleSide
+            }),
+            grid: new THREE.LineBasicMaterial({ color: 0x444466 })
+        };
+        
+        // 建筑数据（基于图纸，单位：米）
+        const buildingData = {
+            totalLength: 50.5,
+            totalWidth: 14.8,
+            floorHeight: 3.5,
+            wallHeight: 3.5,
+            wallThickness: 0.24
+        };
+        
+        // 轴网间距（米）
+        const gridX = [7.8, 7.8, 7.8, 7.8, 3.3, 7.8, 7.8]; // 1-8 轴
+        const gridY = [7.0, 6.4, 2.1, 2.0]; // A-E 轴
+        
+        // 计算轴网位置
+        function getGridPositions() {
+            const xPos = [0];
+            gridX.forEach(d => xPos.push(xPos[xPos.length-1] + d));
+            
+            const yPos = [0];
+            gridY.forEach(d => yPos.push(yPos[yPos.length-1] + d));
+            
+            return { x: xPos, y: yPos };
+        }
+        
+        const gridPos = getGridPositions();
+        
+        // 房间定义
+        const rooms = [
+            // 左侧办公区 (1-4 轴)
+            { name: '开放办公区 1', x: 0, y: 0, w: 7.8, d: 13.4, type: 'office' },
+            { name: '开放办公区 2', x: 7.8, y: 0, w: 7.8, d: 13.4, type: 'office' },
+            { name: '开放办公区 3', x: 15.6, y: 0, w: 7.8, d: 13.4, type: 'office' },
+            { name: '办公室 1', x: 23.4, y: 0, w: 3.9, d: 7.0, type: 'room' },
+            { name: '办公室 2', x: 27.3, y: 0, w: 3.9, d: 7.0, type: 'room' },
+            { name: '办公室 3', x: 23.4, y: 7.0, w: 3.9, d: 6.4, type: 'room' },
+            { name: '办公室 4', x: 27.3, y: 7.0, w: 3.9, d: 6.4, type: 'room' },
+            
+            // 门厅 (4-5 轴)
+            { name: '门厅', x: 31.2, y: 5, w: 7.8, d: 5, type: 'lobby' },
+            
+            // 右侧区域 (5-8 轴)
+            { name: '大会议室', x: 39, y: 0, w: 15.6, d: 7.0, type: 'meeting' },
+            { name: '中会议室', x: 39, y: 7.0, w: 7.8, d: 6.4, type: 'meeting' },
+            { name: '办公室 5', x: 46.8, y: 7.0, w: 7.8, d: 6.4, type: 'room' },
+            
+            // 卫生间和楼梯
+            { name: '卫生间', x: 0, y: 13.4, w: 5, d: 1.4, type: 'utility' },
+            { name: '楼梯间 1', x: 15, y: 13.4, w: 4, d: 1.4, type: 'utility' },
+            { name: '楼梯间 2', x: 34, y: 13.4, w: 4, d: 1.4, type: 'utility' }
+        ];
+        
+        // 创建地板
+        function createFloor() {
+            const floorGeo = new THREE.PlaneGeometry(buildingData.totalLength, buildingData.totalWidth);
+            const floor = new THREE.Mesh(floorGeo, materials.floor);
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.set(buildingData.totalLength / 2, 0, buildingData.totalWidth / 2);
+            floor.receiveShadow = true;
+            scene.add(floor);
+        }
+        
+        // 创建房间
+        function createRooms() {
+            rooms.forEach(room => {
+                const height = 0.1;
+                const geo = new THREE.BoxGeometry(room.w - 0.1, height, room.d - 0.1);
+                let material;
+                
+                switch(room.type) {
+                    case 'office': material = materials.office; break;
+                    case 'meeting': material = materials.meeting; break;
+                    case 'room': material = materials.room; break;
+                    case 'lobby': material = materials.lobby; break;
+                    case 'utility': material = materials.utility; break;
+                    default: material = materials.floor;
+                }
+                
+                const mesh = new THREE.Mesh(geo, material);
+                mesh.position.set(room.x + room.w / 2, 0.05, room.y + room.d / 2);
+                mesh.receiveShadow = true;
+                mesh.userData = { name: room.name, type: room.type };
+                scene.add(mesh);
+            });
+        }
+        
+        // 创建墙体
+        let walls = [];
+        function createWalls() {
+            const wallHeight = buildingData.wallHeight;
+            const wallThick = buildingData.wallThickness;
+            
+            // 外墙
+            const outerWalls = [
+                { x: -wallThick/2, y: 0, w: wallThick, d: buildingData.totalWidth },
+                { x: buildingData.totalLength + wallThick/2, y: 0, w: wallThick, d: buildingData.totalWidth },
+                { x: 0, y: -wallThick/2, w: buildingData.totalLength, d: wallThick },
+                { x: 0, y: buildingData.totalWidth + wallThick/2, w: buildingData.totalLength, d: wallThick }
+            ];
+            
+            outerWalls.forEach(wall => {
+                const geo = new THREE.BoxGeometry(wall.w, wallHeight, wall.d);
+                const mesh = new THREE.Mesh(geo, materials.wall);
+                mesh.position.set(wall.x + wall.w / 2, wallHeight / 2, wall.y + wall.d / 2);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                scene.add(mesh);
+                walls.push(mesh);
+            });
+            
+            // 内墙（主要分隔墙）
+            const innerWalls = [
+                // 纵向隔墙
+                { x: gridPos.x[1], y: 0, w: wallThick, d: 13.4 },
+                { x: gridPos.x[2], y: 0, w: wallThick, d: 13.4 },
+                { x: gridPos.x[3], y: 0, w: wallThick, d: buildingData.totalWidth },
+                { x: gridPos.x[5], y: 0, w: wallThick, d: buildingData.totalWidth },
+                { x: gridPos.x[6], y: 0, w: wallThick, d: buildingData.totalWidth },
+                // 横向隔墙
+                { x: 23.4, y: gridPos.y[1], w: 7.8, d: wallThick },
+                { x: 39, y: gridPos.y[1], w: 15.6, d: wallThick },
+                { x: 0, y: gridPos.y[2], w: 23.4, d: wallThick }
+            ];
+            
+            innerWalls.forEach(wall => {
+                const geo = new THREE.BoxGeometry(wall.w, wallHeight, wall.d);
+                const mesh = new THREE.Mesh(geo, materials.wall);
+                mesh.position.set(wall.x + wall.w / 2, wallHeight / 2, wall.y + wall.d / 2);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                scene.add(mesh);
+                walls.push(mesh);
+            });
+        }
+        
+        // 创建窗户
+        function createWindows() {
+            const windowHeight = 1.5;
+            const windowWidth = 2.0;
+            const windowSill = 1.0;
+            
+            // 南侧窗户 (A 轴)
+            for (let i = 0; i < 4; i++) {
+                const geo = new THREE.PlaneGeometry(windowWidth, windowHeight);
+                const mesh = new THREE.Mesh(geo, materials.glass);
+                mesh.position.set(5 + i * 10, windowSill + windowHeight / 2, -0.1);
+                scene.add(mesh);
+            }
+            
+            // 北侧窗户 (E 轴)
+            for (let i = 0; i < 4; i++) {
+                const geo = new THREE.PlaneGeometry(windowWidth, windowHeight);
+                const mesh = new THREE.Mesh(geo, materials.glass);
+                mesh.rotation.y = Math.PI;
+                mesh.position.set(5 + i * 10, windowSill + windowHeight / 2, buildingData.totalWidth + 0.1);
+                scene.add(mesh);
+            }
+        }
+        
+        // 创建轴网标注
+        let labels = [];
+        function createGridLabels() {
+            // X 轴标注
+            const fontProps = { font: '12px Arial', fillStyle: '#4fc3f7' };
+            
+            gridPos.x.forEach((x, i) => {
+                if (i < gridPos.x.length - 1) {
+                    const label = document.createElement('div');
+                    label.textContent = `${i + 1}轴`;
+                    label.style.position = 'absolute';
+                    label.style.color = '#4fc3f7';
+                    label.style.fontSize = '12px';
+                    label.style.fontWeight = 'bold';
+                    document.getElementById('container').appendChild(label);
+                    labels.push({ element: label, position: new THREE.Vector3(x, 0, -1) });
+                }
+            });
+        }
+        
+        // 创建地面网格
+        function createGrid() {
+            const gridSize = 100;
+            const gridDivisions = 100;
+            const gridHelper = new THREE.GridHelper(gridSize, gridDivisions, 0x444466, 0x333355);
+            gridHelper.position.set(buildingData.totalLength / 2, -0.01, buildingData.totalWidth / 2);
+            scene.add(gridHelper);
+        }
+        
+        // 视图切换
+        function setView(view) {
+            switch(view) {
+                case 'top':
+                    camera.position.set(50, 100, 50);
+                    break;
+                case 'front':
+                    camera.position.set(50, 10, 0);
+                    break;
+                case 'side':
+                    camera.position.set(0, 10, 50);
+                    break;
+                case 'iso':
+                    camera.position.set(50, 80, 50);
+                    break;
+            }
+            controls.update();
+        }
+        
+        // 切换墙体显示
+        let wallsVisible = true;
+        function toggleWalls() {
+            wallsVisible = !wallsVisible;
+            walls.forEach(wall => wall.visible = wallsVisible);
+        }
+        
+        // 切换标注显示
+        let labelsVisible = true;
+        function toggleLabels() {
+            labelsVisible = !labelsVisible;
+            labels.forEach(label => {
+                label.element.style.display = labelsVisible ? 'block' : 'none';
+            });
+        }
+        
+        // 窗口大小调整
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // 全局函数
+        window.setView = setView;
+        window.toggleWalls = toggleWalls;
+        window.toggleLabels = toggleLabels;
+        
+        // 初始化场景
+        createFloor();
+        createRooms();
+        createWalls();
+        createWindows();
+        createGrid();
+        createGridLabels();
+        
+        // 动画循环
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+    </script>
+</body>
+</html>
