@@ -352,6 +352,8 @@ async function handleLogSubmit(e) {
         special_note: document.getElementById('special-note').value
     };
     
+    showLoading(true);
+    
     try {
         // 先获取今日日志 ID
         const res = await fetch(`${API_BASE}/logs/today?user_id=${currentUserId}`);
@@ -366,15 +368,17 @@ async function handleLogSubmit(e) {
             
             const updateResult = await updateRes.json();
             if (updateResult.success) {
-                showToast('✅ 记录已保存');
+                showToast('✅ 记录已保存', 'success');
                 loadHomeData(); // 刷新首页
             } else {
-                showToast('❌ 保存失败');
+                showToast('❌ 保存失败', 'error');
             }
         }
     } catch (error) {
         console.error('保存日志失败:', error);
-        showToast('❌ 保存失败');
+        showToast('❌ 保存失败', 'error');
+    } finally {
+        showLoading(false);
     }
 }
 
@@ -531,6 +535,8 @@ function quickRecord(type) {
 }
 
 async function updateLog(data) {
+    showLoading(true);
+    
     try {
         const res = await fetch(`${API_BASE}/logs/today?user_id=${currentUserId}`);
         const result = await res.json();
@@ -544,14 +550,18 @@ async function updateLog(data) {
             
             const updateResult = await updateRes.json();
             if (updateResult.success) {
-                showToast('✅ 已记录');
+                showToast('✅ 已记录', 'success');
                 closeModal();
                 loadHomeData();
+            } else {
+                showToast('❌ 记录失败', 'error');
             }
         }
     } catch (error) {
         console.error('更新日志失败:', error);
-        showToast('❌ 记录失败');
+        showToast('❌ 记录失败', 'error');
+    } finally {
+        showLoading(false);
     }
 }
 
@@ -700,10 +710,35 @@ document.querySelector('#modal .btn')?.addEventListener('click', () => {
 
 // ==================== 工具函数 ====================
 
-function showToast(message) {
-    // 简单实现：用 alert 替代
-    // 实际项目中应该用更好的 toast 组件
-    console.log('Toast:', message);
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    
+    container.appendChild(toast);
+    
+    // 3 秒后移除
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+function showLoading(show = true) {
+    let overlay = document.getElementById('loading-overlay');
+    
+    if (show && !overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'loading-overlay';
+        overlay.className = 'loading-overlay';
+        overlay.innerHTML = '<div class="loading-spinner"></div>';
+        document.body.appendChild(overlay);
+    } else if (!show && overlay) {
+        overlay.remove();
+    }
 }
 
 function escapeHtml(text) {
