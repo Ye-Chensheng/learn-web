@@ -7,6 +7,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>vibe-healing | 健康陪伴</title>
     <link rel="stylesheet" href="/css/main.css">
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <!-- 顶部导航 -->
@@ -33,6 +35,47 @@
                         <span class="fire">🔥</span>
                         <span>连续 <strong id="continuous-days">0</strong> 天</span>
                     </div>
+                </div>
+            </div>
+
+            <!-- 数据概览卡片 -->
+            <div class="card stats-card">
+                <div class="card-header">
+                    <h2>本周数据</h2>
+                </div>
+                <div class="card-body">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-icon">😴</span>
+                            <span class="stat-value" id="avg-sleep">--</span>
+                            <span class="stat-label">平均睡眠 (h)</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-icon">💧</span>
+                            <span class="stat-value" id="avg-water">--</span>
+                            <span class="stat-label">平均喝水 (杯)</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-icon">🏃</span>
+                            <span class="stat-value" id="exercise-days">--</span>
+                            <span class="stat-label">运动天数</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-icon">😊</span>
+                            <span class="stat-value" id="avg-mood">--</span>
+                            <span class="stat-label">平均心情</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 图表卡片 -->
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h2>趋势图表</h2>
+                </div>
+                <div class="card-body">
+                    <canvas id="trendChart" height="200"></canvas>
                 </div>
             </div>
 

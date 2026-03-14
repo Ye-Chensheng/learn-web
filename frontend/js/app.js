@@ -101,6 +101,8 @@ function updateUserProfile() {
 
 // ==================== 首页数据 ====================
 
+let trendChartInstance = null;
+
 async function loadHomeData() {
     try {
         const res = await fetch(`${API_BASE}/home?user_id=${currentUserId}`);
@@ -109,9 +111,118 @@ async function loadHomeData() {
         if (result.success) {
             renderHomeData(result.data);
         }
+        
+        // 加载周报数据用于图表
+        await loadWeeklyReport();
     } catch (error) {
         console.error('加载首页数据失败:', error);
     }
+}
+
+async function loadWeeklyReport() {
+    try {
+        const res = await fetch(`${API_BASE}/report/weekly?user_id=${currentUserId}`);
+        const result = await res.json();
+        
+        if (result.success) {
+            renderStats(result.data.stats);
+            renderTrendChart(result.data.stats);
+        }
+    } catch (error) {
+        console.error('加载周报数据失败:', error);
+        // 显示空图表
+        renderEmptyChart();
+    }
+}
+
+function renderStats(stats) {
+    document.getElementById('avg-sleep').textContent = stats.avgSleep?.toFixed(1) || '--';
+    document.getElementById('avg-water').textContent = stats.avgWater?.toFixed(0) || '--';
+    document.getElementById('exercise-days').textContent = stats.exerciseDays || 0;
+    document.getElementById('avg-mood').textContent = stats.avgMood?.toFixed(1) || '--';
+}
+
+function renderTrendChart(stats) {
+    const ctx = document.getElementById('trendChart').getContext('2d');
+    
+    // 销毁旧图表
+    if (trendChartInstance) {
+        trendChartInstance.destroy();
+    }
+    
+    // 创建新图表
+    trendChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['睡眠', '喝水', '心情', '精力'],
+            datasets: [{
+                label: '本周平均',
+                data: [
+                    stats.avgSleep || 0,
+                    stats.avgWater || 0,
+                    stats.avgMood || 0,
+                    stats.avgEnergy || 0
+                ],
+                borderColor: '#10B981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 10
+                }
+            }
+        }
+    });
+}
+
+function renderEmptyChart() {
+    const ctx = document.getElementById('trendChart').getContext('2d');
+    
+    if (trendChartInstance) {
+        trendChartInstance.destroy();
+    }
+    
+    trendChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['暂无数据'],
+            datasets: [{
+                label: '开始记录后显示趋势',
+                data: [0],
+                borderColor: '#E5E7EB',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    display: false
+                },
+                x: {
+                    display: false
+                }
+            }
+        }
+    });
 }
 
 function renderHomeData(data) {
