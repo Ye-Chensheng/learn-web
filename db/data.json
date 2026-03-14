@@ -1,9 +1,54 @@
 {
-  "users": [],
+  "users": [
+    {
+      "id": 1,
+      "wx_openid": "demo_user_001",
+      "nickname": "小伙伴",
+      "avatar_url": "",
+      "gender": 0,
+      "age": null,
+      "height_cm": null,
+      "weight_kg": null,
+      "occupation": "",
+      "work_type": "",
+      "createdAt": "2026-03-14T17:20:29.815Z",
+      "updatedAt": "2026-03-14T17:20:29.815Z"
+    }
+  ],
   "userGoals": [],
-  "dailyLogs": [],
+  "dailyLogs": [
+    {
+      "id": "mmqld75yyo59p4i8p39",
+      "userId": 1,
+      "logDate": "2026-03-14",
+      "weightKg": null,
+      "sleepHours": null,
+      "sleepQuality": null,
+      "waterCups": 0,
+      "steps": 0,
+      "exerciseType": null,
+      "exerciseDuration": 0,
+      "moodLevel": 5,
+      "energyLevel": 5,
+      "workLoad": "normal",
+      "specialNote": "",
+      "modeType": "stable",
+      "createdAt": "2026-03-14T17:20:29.830Z",
+      "updatedAt": "2026-03-14T17:20:29.830Z"
+    }
+  ],
   "foodRecords": [],
-  "chatSummaries": [],
+  "chatSummaries": [
+    {
+      "id": "mmqld765d78fqnax2b",
+      "userId": 1,
+      "sessionId": "session_2026-03-14",
+      "userMessage": "测试",
+      "agentReply": "早上好呀！今天有什么健康小目标吗？比如多喝两杯水、午饭后散个步，都是很好的开始～ ☀️",
+      "sentiment": "neutral",
+      "createdAt": "2026-03-14T17:20:29.837Z"
+    }
+  ],
   "userTags": [],
   "weeklyPlans": [],
   "aiSuggestions": []
