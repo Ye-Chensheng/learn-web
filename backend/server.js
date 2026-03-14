@@ -357,39 +357,73 @@ app.post('/api/chat', (req, res) => {
     }
 });
 
-// AI 回复生成器
+// AI 回复生成器 - 拟人化陪伴逻辑
 function generateAIReply(message, user, log, recentLogs) {
     const lowerMsg = message.toLowerCase();
     
-    if (lowerMsg.includes('累') || lowerMsg.includes('烦') || lowerMsg.includes('辛苦')) {
+    // 获取用户画像标签
+    const userTags = db?.userTags?.filter(t => t.userId === (user?.id || 1)) || [];
+    const isOvertimeType = userTags.some(t => t.tagName === '高压加班型');
+    const needsEncouragement = userTags.some(t => t.tagName === '适合鼓励式沟通');
+    
+    // 计算最近平均状态
+    const avgSleep = recentLogs.length > 0 
+        ? recentLogs.reduce((sum, l) => sum + (l.sleepHours || 0), 0) / recentLogs.length 
+        : 7;
+    const avgEnergy = recentLogs.length > 0 
+        ? recentLogs.reduce((sum, l) => sum + (l.energyLevel || 5), 0) / recentLogs.length 
+        : 5;
+    
+    // 情绪理解优先
+    if (lowerMsg.includes('累') || lowerMsg.includes('烦') || lowerMsg.includes('辛苦') || lowerMsg.includes('烦')) {
+        if (isOvertimeType) {
+            return `最近加班挺多的吧，辛苦了。这种时候别给自己太大压力，健康是长期的事，先把基本的水喝够、饭吃好就已经很好了。我在这儿陪着你呢～ 🌙`;
+        }
         return `听起来今天确实不容易呢。工作辛苦的时候，健康计划可以适当放松一些。今晚早点休息，明天又是新的一天～ 🌙`;
     }
     
-    if (lowerMsg.includes('加班')) {
+    // 加班场景
+    if (lowerMsg.includes('加班') || lowerMsg.includes('忙') || lowerMsg.includes('工作多')) {
+        const currentHour = new Date().getHours();
+        if (currentHour >= 21) {
+            return `这么晚还在忙啊，辛苦了！这种情况下，咱们启动「保底模式」：记得多喝水，晚饭尽量清淡，睡前别吃太饱。能做到的话，站起来活动 2 分钟就已经很好了！💪`;
+        }
         return `加班辛苦了！这种情况下，咱们启动「保底模式」：记得多喝水，晚饭尽量清淡，睡前别吃太饱。能做到的话，站起来活动 2 分钟就已经很好了！💪`;
     }
     
-    if (lowerMsg.includes('睡') || lowerMsg.includes('困')) {
-        const sleepHours = log?.sleepHours || 0;
+    // 睡眠相关
+    if (lowerMsg.includes('睡') || lowerMsg.includes('困') || lowerMsg.includes('熬夜')) {
+        const sleepHours = log?.sleepHours || avgSleep;
         if (sleepHours && sleepHours < 7) {
-            return `昨晚只睡了${sleepHours}小时啊，今天确实容易犯困。中午可以小憩 15-20 分钟，下午会精神一些。今晚争取早点休息～`;
+            return `昨晚只睡了${sleepHours.toFixed(1)}小时啊，今天确实容易犯困。中午可以小憩 15-20 分钟，下午会精神一些。今晚争取早点休息，我到时候提醒你～`;
         }
         return `睡眠还好就好！精力充足的时候，可以试试午饭后散个步，对身体很有好处～`;
     }
     
-    if (lowerMsg.includes('吃') || lowerMsg.includes('饭') || lowerMsg.includes('饿')) {
+    // 饮食相关
+    if (lowerMsg.includes('吃') || lowerMsg.includes('饭') || lowerMsg.includes('饿') || lowerMsg.includes('奶茶') || lowerMsg.includes('外卖')) {
+        if (lowerMsg.includes('奶茶')) {
+            return `想喝奶茶了？可以选无糖或三分糖，解馋又健康～ 或者试试气泡水加柠檬，也挺满足的！🥤`;
+        }
+        if (lowerMsg.includes('外卖')) {
+            return `点外卖的话，建议选清淡一些的，比如蒸菜、沙拉、鸡胸肉这类。避免油炸和重口味的，对身体负担小～ 🥗`;
+        }
         return `吃饭是大事！如果点外卖，建议选清淡一些的，比如蒸菜、沙拉、鸡胸肉这类。奶茶可以选无糖或三分糖，解馋又健康～ 🥗`;
     }
     
-    if (lowerMsg.includes('运动') || lowerMsg.includes('锻炼') || lowerMsg.includes('跑')) {
+    // 运动相关
+    if (lowerMsg.includes('运动') || lowerMsg.includes('锻炼') || lowerMsg.includes('跑') || lowerMsg.includes('健身')) {
         const workLoad = log?.workLoad || 'normal';
-        if (workLoad === 'heavy') {
-            return `今天工作强度大，运动可以适度降低一些。散步 20 分钟或者做做拉伸就很好，别给自己太大压力～`;
+        const energyLevel = log?.energyLevel || avgEnergy;
+        
+        if (workLoad === 'heavy' || energyLevel <= 3) {
+            return `今天工作强度大/状态一般，运动可以适度降低一些。散步 20 分钟或者做做拉伸就很好，别给自己太大压力～`;
         }
         return `运动计划可以安排上！如果时间紧张，20 分钟居家训练也有效果。关键是动起来，不求完美～ 🏃`;
     }
     
-    if (lowerMsg.includes('体重') || lowerMsg.includes('称') || lowerMsg.includes('kg')) {
+    // 体重相关
+    if (lowerMsg.includes('体重') || lowerMsg.includes('称') || lowerMsg.includes('kg') || lowerMsg.includes('斤')) {
         const weight = log?.weightKg || user?.weightKg;
         if (weight) {
             return `当前体重 ${weight}kg。记住，体重只是参考，更重要的是你的整体状态和感受。持续记录就是进步！📊`;
@@ -397,18 +431,36 @@ function generateAIReply(message, user, log, recentLogs) {
         return `还没记录体重呢。找个固定的时间（比如早起空腹）称重，数据会更有参考价值～`;
     }
     
-    if (lowerMsg.includes('好') || lowerMsg.includes('棒') || lowerMsg.includes('谢谢')) {
-        return `你做得很好！健康是长期的事，不用追求完美。每天进步一点点，积累起来就是大变化～ 🌟`;
+    // 生理期关怀 (针对女性用户)
+    if (lowerMsg.includes('生理期') || lowerMsg.includes('姨妈') || lowerMsg.includes('肚子疼')) {
+        return `生理期要多注意休息，别碰冷水，吃点温热的食物。运动可以暂停几天，等身体舒服了再继续。照顾好自己～ 🌸`;
     }
     
-    // 默认回复
+    // 出差场景
+    if (lowerMsg.includes('出差') || lowerMsg.includes('酒店') || lowerMsg.includes('旅行')) {
+        return `出差在外，条件有限，咱们调整一下目标：少油少甜、每天走 6000 步、多喝水。酒店房间也可以做简单的拉伸，保持活动就好～`;
+    }
+    
+    // 进步鼓励
+    if (lowerMsg.includes('好') || lowerMsg.includes('棒') || lowerMsg.includes('谢谢') || lowerMsg.includes('有用')) {
+        return `你做得很好！健康是长期的事，不用追求完美。每天进步一点点，积累起来就是大变化～ 我会一直陪着你的！🌟`;
+    }
+    
+    // 负面情绪安抚
+    if (lowerMsg.includes('放弃') || lowerMsg.includes('没用') || lowerMsg.includes('坚持不了')) {
+        return `别这么说，你已经做得很好了。健康不是短跑，是马拉松。有时候慢一点、停一停都没关系，重要的是别放弃自己。我在这儿陪着你，咱们一起慢慢来～ 💚`;
+    }
+    
+    // 默认回复 (带时间感知)
     const hour = new Date().getHours();
     if (hour < 12) {
         return `早上好呀！今天有什么健康小目标吗？比如多喝两杯水、午饭后散个步，都是很好的开始～ ☀️`;
     } else if (hour < 18) {
         return `下午好！工作累的话记得起来活动活动，接杯水、伸个懒腰，对身体都好～ 💪`;
+    } else if (hour < 23) {
+        return `晚上好！今天过得怎么样？如果还没记录今天的饮食和运动，可以花一分钟记一下～`;
     } else {
-        return `晚上好！今天过得怎么样？如果还没记录今天的饮食和运动，可以花一分钟记一下～ `;
+        return `这么晚还没休息呀？早点睡吧，明天又是新的一天。晚安～ 🌙`;
     }
 }
 
