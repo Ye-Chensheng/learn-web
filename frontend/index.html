@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>vibe-healing | 健康陪伴</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <header class="header">
+        <div class="header-content">
+            <h1 class="logo">🦞 vibe-healing</h1>
+            <p class="subtitle">你的健康陪伴搭子</p>
+        </div>
+    </header>
+
+    <!-- 主容器 -->
+    <main class="container">
+        <!-- 首页 -->
+        <section id="page-home" class="page active">
+            <!-- 今日状态卡片 -->
+            <div class="card status-card">
+                <div class="card-header">
+                    <span class="mode-badge" id="today-mode">稳态模式</span>
+                    <span class="date" id="today-date">--</span>
+                </div>
+                <div class="card-body">
+                    <p class="status-text" id="status-text">今天有什么健康小目标吗？</p>
+                    <div class="continuous-days">
+                        <span class="fire">🔥</span>
+                        <span>连续 <strong id="continuous-days">0</strong> 天</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 今日建议 -->
+            <div class="card suggestions-card">
+                <div class="card-header">
+                    <h2>今日建议</h2>
+                </div>
+                <div class="card-body" id="suggestions-list">
+                    <!-- 动态加载 -->
+                </div>
+            </div>
+
+            <!-- 快捷记录 -->
+            <div class="card quick-actions">
+                <div class="card-header">
+                    <h2>快捷记录</h2>
+                </div>
+                <div class="card-body">
+                    <div class="action-grid">
+                        <button class="action-btn" onclick="quickRecord('water')">
+                            <span class="icon">💧</span>
+                            <span>喝水</span>
+                        </button>
+                        <button class="action-btn" onclick="quickRecord('food')">
+                            <span class="icon">🍽️</span>
+                            <span>饮食</span>
+                        </button>
+                        <button class="action-btn" onclick="quickRecord('exercise')">
+                            <span class="icon">🏃</span>
+                            <span>运动</span>
+                        </button>
+                        <button class="action-btn" onclick="quickRecord('sleep')">
+                            <span class="icon">😴</span>
+                            <span>睡眠</span>
+                        </button>
+                        <button class="action-btn" onclick="quickRecord('weight')">
+                            <span class="icon">⚖️</span>
+                            <span>体重</span>
+                        </button>
+                        <button class="action-btn" onclick="quickRecord('mood')">
+                            <span class="icon">😊</span>
+                            <span>心情</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 记录页 -->
+        <section id="page-logs" class="page">
+            <div class="card">
+                <div class="card-header">
+                    <h2>健康记录</h2>
+                </div>
+                <div class="card-body">
+                    <form id="log-form" class="log-form">
+                        <div class="form-group">
+                            <label>工作强度</label>
+                            <select id="work-load" class="form-control">
+                                <option value="light">轻松</option>
+                                <option value="normal" selected>正常</option>
+                                <option value="heavy">繁忙/加班</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>精力水平 (1-10)</label>
+                            <input type="range" id="energy-level" min="1" max="10" value="5" class="form-control">
+                            <div class="range-value" id="energy-value">5</div>
+                        </div>
+                        <div class="form-group">
+                            <label>心情状态 (1-10)</label>
+                            <input type="range" id="mood-level" min="1" max="10" value="7" class="form-control">
+                            <div class="range-value" id="mood-value">7</div>
+                        </div>
+                        <div class="form-group">
+                            <label>睡眠时长 (小时)</label>
+                            <input type="number" id="sleep-hours" step="0.5" placeholder="例如：7.5" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>喝水杯数</label>
+                            <input type="number" id="water-cups" placeholder="例如：6" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>步数</label>
+                            <input type="number" id="steps" placeholder="例如：8000" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>今日备注</label>
+                            <textarea id="special-note" placeholder="今天有什么特别的事吗？" class="form-control" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">保存记录</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- 聊天页 -->
+        <section id="page-chat" class="page">
+            <div class="chat-container">
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message agent">
+                        <div class="message-content">
+                            你好呀！我是你的健康陪伴搭子～ 今天过得怎么样？有什么想和我分享的吗？💬
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="chat-input" class="chat-input" placeholder="和我说说话..." />
+                    <button class="btn btn-primary" onclick="sendMessage()">发送</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 我的页面 -->
+        <section id="page-profile" class="page">
+            <div class="card">
+                <div class="card-header">
+                    <h2>我的</h2>
+                </div>
+                <div class="card-body">
+                    <div class="profile-header">
+                        <div class="avatar">👤</div>
+                        <div class="user-info">
+                            <h3 id="user-nickname">小伙伴</h3>
+                            <p class="user-id">ID: <span id="user-id">--</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>健康数据</h2>
+                </div>
+                <div class="card-body">
+                    <div class="data-row">
+                        <span>身高</span>
+                        <span id="user-height">-- cm</span>
+                    </div>
+                    <div class="data-row">
+                        <span>体重</span>
+                        <span id="user-weight">-- kg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>关于</h2>
+                </div>
+                <div class="card-body">
+                    <p class="about-text">
+                        vibe-healing 是一个 AI 健康陪伴产品，<br>
+                        不是帮你短期减肥，而是帮你在高压工作与有限时间里，<br>
+                        维持一种可持续的健康生活方式。
+                    </p>
+                    <p class="version">MVP v1.0</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 底部导航 -->
+    <nav class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('home')">
+            <span class="tab-icon">🏠</span>
+            <span class="tab-label">首页</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('logs')">
+            <span class="tab-icon">📝</span>
+            <span class="tab-label">记录</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('chat')">
+            <span class="tab-icon">💬</span>
+            <span class="tab-label">聊天</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('profile')">
+            <span class="tab-icon">👤</span>
+            <span class="tab-label">我的</span>
+        </button>
+    </nav>
+
+    <!-- 弹窗 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title">标题</h3>
+            <div id="modal-body"></div>
+            <button class="btn btn-primary" onclick="closeModal()">关闭</button>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
