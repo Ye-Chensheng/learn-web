@@ -1,5 +1,5 @@
 /**
- * vibe-healing 前端应用 - v2.8 个性化健康计划
+ * vibe-healing 前端应用 - v2.9 UI 优化
  * 健康陪伴系统 H5 客户端
  */
 
@@ -35,25 +35,17 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initApp() {
-    console.log('🦞 vibe-healing v2.8 启动中...');
-    
-    // 初始化用户
+    console.log('🦞 vibe-healing v2.9 启动中...');
     await initUser();
-    
-    // 加载首页数据
     await loadHomeData();
-    
     console.log('✅ 应用初始化完成');
 }
 
 function setupEventListeners() {
-    // 聊天输入回车发送
     const chatInput = document.getElementById('chat-input');
     if (chatInput) {
         chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
+            if (e.key === 'Enter') sendMessage();
         });
     }
 }
@@ -84,7 +76,6 @@ async function initUser() {
         }
     } catch (error) {
         console.error('初始化用户失败:', error);
-        // 使用默认数据
         currentUser = {
             id: 1,
             nickname: '小伙伴',
@@ -107,11 +98,8 @@ function updateUserProfile() {
     document.getElementById('profile-height').textContent = currentUser.height_cm ? `${currentUser.height_cm} cm` : '--';
     document.getElementById('profile-weight').textContent = currentUser.weight_kg ? `${currentUser.weight_kg} kg` : '--';
     
-    // 计算健康指数 (简化 BMI)
-    const healthIndex = currentUser.height_cm && currentUser.weight_kg
-        ? Math.round(100 - Math.abs(22 - (currentUser.weight_kg / ((currentUser.height_cm / 100) ** 2))) * 5)
-        : '--';
-    document.getElementById('profile-health-index').textContent = healthIndex !== '--' ? `${healthIndex}` : '--';
+    const healthIndex = calculateHealthIndex();
+    document.getElementById('profile-health-index').textContent = healthIndex;
 }
 
 function updateBasicStats() {
@@ -121,10 +109,25 @@ function updateBasicStats() {
     document.getElementById('stat-height').textContent = currentUser.height_cm ? `${currentUser.height_cm}cm` : '--';
     document.getElementById('stat-weight').textContent = currentUser.weight_kg ? `${currentUser.weight_kg}kg` : '--';
     
-    const healthIndex = currentUser.height_cm && currentUser.weight_kg
-        ? Math.round(100 - Math.abs(22 - (currentUser.weight_kg / ((currentUser.height_cm / 100) ** 2))) * 5)
-        : '--';
-    document.getElementById('stat-health-index').textContent = healthIndex !== '--' ? `${healthIndex}` : '--';
+    const healthIndex = calculateHealthIndex();
+    document.getElementById('stat-health-index').textContent = healthIndex;
+}
+
+// 健康指数计算逻辑
+function calculateHealthIndex() {
+    if (!currentUser.height_cm || !currentUser.weight_kg) {
+        return '--';
+    }
+    
+    const heightM = currentUser.height_cm / 100;
+    const bmi = currentUser.weight_kg / (heightM * heightM);
+    
+    // 健康指数 = 100 - |22 - BMI| * 5
+    // BMI=22 时得 100 分，偏离越大分数越低
+    const index = Math.round(100 - Math.abs(22 - bmi) * 5);
+    
+    // 限制在 0-100 范围
+    return Math.max(0, Math.min(100, index));
 }
 
 // ==================== 首页数据 ====================
@@ -133,10 +136,7 @@ async function loadHomeData() {
     try {
         const res = await fetch(`${API_BASE}/home?user_id=${currentUserId}`);
         const result = await res.json();
-        
-        if (result.success) {
-            renderAIInsight(result.data);
-        }
+        if (result.success) renderAIInsight(result.data);
     } catch (error) {
         console.error('加载首页数据失败:', error);
         renderDefaultAIInsight();
@@ -175,15 +175,13 @@ function renderDefaultAIInsight() {
     else if (hour >= 18 && hour < 23) greeting = '晚上好！';
     
     if (greetingEl) greetingEl.textContent = greeting;
-    if (suggestionEl) suggestionEl.textContent = '💬 点击查看您的个性化健康计划';
+    if (suggestionEl) suggestionEl.textContent = '💬 点击查看今日健康小 tips';
 }
 
 // ==================== 跳转到聊天页并显示健康计划 ====================
 
 window.goToChatWithPlan = function() {
     switchTab('chat');
-    
-    // 延迟发送健康计划消息
     setTimeout(() => {
         addHealthPlanMessage();
     }, 300);
@@ -193,29 +191,35 @@ function addHealthPlanMessage() {
     const container = document.getElementById('chat-messages');
     if (!container) return;
     
-    const planContent = `
-        <div class="health-plan-card">
-            <h4>📋 您的个性化健康小计划</h4>
-            <p><strong>⏰ 作息分析</strong></p>
-            <p>根据您的作息：早上${userDemoProfile.wakeTime}起床，${userDemoProfile.workStart}到公司，晚上${userDemoProfile.offWork}下班</p>
-            
-            <p style="margin-top: 12px;"><strong>🏃 运动建议</strong></p>
-            <p>• 午休时间 (${userDemoProfile.lunchBreak})：吃完饭可以去溜达 20-30 分钟，或去公司健身房锻炼</p>
-            <p>• 晚间时间 (${userDemoProfile.dinnerBreak})：如果不吃晚饭可以去健身房锻炼，吃晚饭就散步溜达</p>
-            <p>• 下班后 (${userDemoProfile.offWork})：有余力可以再去运动一小会，没有余力就回家休息迎接美好的第二天～</p>
-            
-            <p style="margin-top: 12px;"><strong>🥗 饮食建议</strong></p>
-            <p>• 减脂期推荐：早餐鸡蛋 + 牛奶 + 全麦面包，午餐选择清淡档口（蒸/煮/烤），晚餐少量主食 + 大量蔬菜</p>
-            <p>• 如果带饭：可以准备鸡胸肉/鱼肉 + 糙米饭 + 西兰花/时蔬</p>
-            <p>• 多喝水！每天目标 8 杯以上～</p>
-            
-            <p class="plan-note">💡 小贴士：不用追求完美，偶尔吃多了也没关系，第二天恢复正常就好～健康是长期的，不是短期的刻意哦！🦞</p>
-        </div>
+    // 检查是否已经显示过健康计划
+    const existingPlan = container.querySelector('.health-plan');
+    if (existingPlan) {
+        // 已经存在，滚动到底部即可
+        container.scrollTop = container.scrollHeight;
+        return;
+    }
+    
+    const planHTML = `
+        <h4>📋 您的个性化健康小计划</h4>
+        <p><strong>⏰ 作息分析</strong></p>
+        <p>根据您的作息：早上${userDemoProfile.wakeTime}起床，${userDemoProfile.workStart}到公司，晚上${userDemoProfile.offWork}下班</p>
+        
+        <p style="margin-top: 12px;"><strong>🏃 运动建议</strong></p>
+        <p>• 午休时间 (${userDemoProfile.lunchBreak})：吃完饭可以去溜达 20-30 分钟，或去公司健身房锻炼</p>
+        <p>• 晚间时间 (${userDemoProfile.dinnerBreak})：如果不吃晚饭可以去健身房锻炼，吃晚饭就散步溜达</p>
+        <p>• 下班后 (${userDemoProfile.offWork})：有余力可以再去运动一小会，没有余力就回家休息迎接美好的第二天～</p>
+        
+        <p style="margin-top: 12px;"><strong>🥗 饮食建议</strong></p>
+        <p>• 减脂期推荐：早餐鸡蛋 + 牛奶 + 全麦面包，午餐选择清淡档口（蒸/煮/烤），晚餐少量主食 + 大量蔬菜</p>
+        <p>• 如果带饭：可以准备鸡胸肉/鱼肉 + 糙米饭 + 西兰花/时蔬</p>
+        <p>• 多喝水！每天目标 8 杯以上～</p>
+        
+        <p class="plan-note">💡 小贴士：不用追求完美，偶尔吃多了也没关系，第二天恢复正常就好～健康是长期的，不是短期的刻意哦！🦞</p>
     `;
     
     const messageEl = document.createElement('div');
     messageEl.className = 'message agent';
-    messageEl.innerHTML = `<div class="message-content health-plan">${planContent}</div>`;
+    messageEl.innerHTML = `<div class="message-content health-plan">${planHTML}</div>`;
     
     container.appendChild(messageEl);
     container.scrollTop = container.scrollHeight;
@@ -227,10 +231,7 @@ async function loadStatsData() {
     try {
         const res = await fetch(`${API_BASE}/report/weekly?user_id=${currentUserId}`);
         const result = await res.json();
-        
-        if (result.success) {
-            renderStats(result.data.stats);
-        }
+        if (result.success) renderStats(result.data.stats);
     } catch (error) {
         console.error('加载统计数据失败:', error);
     }
@@ -283,12 +284,36 @@ window.editStat = function(statType) {
             `
         },
         health: {
-            title: '健康指数',
+            title: '健康指数说明',
             content: `
-                <p style="text-align: center; color: var(--text-secondary); margin: 20px 0;">
-                    健康指数根据身高体重自动计算<br>
-                    编辑身高或体重可更新指数
-                </p>
+                <div style="padding: 16px 0;">
+                    <p style="margin-bottom: 16px; line-height: 1.7;">
+                        <strong>健康指数计算逻辑：</strong>
+                    </p>
+                    <p style="margin-bottom: 12px; line-height: 1.7;">
+                        <strong>1️⃣ 先计算 BMI</strong><br>
+                        BMI = 体重 (kg) ÷ 身高 (m)²
+                    </p>
+                    <p style="margin-bottom: 12px; line-height: 1.7;">
+                        <strong>2️⃣ 计算健康指数</strong><br>
+                        健康指数 = 100 - |22 - BMI| × 5
+                    </p>
+                    <p style="margin-bottom: 12px; line-height: 1.7;">
+                        <strong>3️⃣ 说明</strong><br>
+                        • BMI=22 时，健康指数=100（最理想）<br>
+                        • BMI 偏离 22 越多，分数越低<br>
+                        • 分数范围：0-100
+                    </p>
+                    <p style="margin-bottom: 12px; line-height: 1.7;">
+                        <strong>4️⃣ 参考标准</strong><br>
+                        • 80-100：健康范围<br>
+                        • 60-79：需关注<br>
+                        • 0-59：建议咨询医生
+                    </p>
+                    <p style="color: var(--primary-color); font-style: italic; margin-top: 16px;">
+                        💡 健康指数仅供参考，具体健康状况请咨询专业医生哦～
+                    </p>
+                </div>
                 <button class="btn btn-secondary btn-block" onclick="closeBottomSheet()">知道了</button>
             `
         }
@@ -379,10 +404,7 @@ window.selectTime = function(btn, time) {
 }
 
 window.confirmRecord = function() {
-    if (!selectedTime) {
-        selectedTime = '默认';
-    }
-    
+    if (!selectedTime) selectedTime = '默认';
     showToast(`✅ 已记录：${getValueLabel(currentRecordType, currentRecordValue)} (${selectedTime})`, 'success');
     closeBottomSheet();
 }
@@ -419,10 +441,7 @@ async function sendMessage() {
         const res = await fetch(`${API_BASE}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                user_id: currentUserId,
-                message: message
-            })
+            body: JSON.stringify({ user_id: currentUserId, message })
         });
         
         const result = await res.json();
@@ -450,32 +469,19 @@ function addChatMessage(text, type) {
 // ==================== 页面切换 ====================
 
 window.switchTab = function(tabName) {
-    document.querySelectorAll('.page').forEach(page => {
-        page.classList.remove('active');
-    });
+    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
     
     const targetPage = document.getElementById(`page-${tabName}`);
-    if (targetPage) {
-        targetPage.classList.add('active');
-    }
+    if (targetPage) targetPage.classList.add('active');
     
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     
     const activeBtn = document.querySelector(`.tab-btn[onclick="switchTab('${tabName}')"]`);
-    if (activeBtn) {
-        activeBtn.classList.add('active');
-    }
+    if (activeBtn) activeBtn.classList.add('active');
     
-    if (tabName === 'home') {
-        loadHomeData();
-    } else if (tabName === 'stats') {
-        loadStatsData();
-    } else if (tabName === 'profile') {
-        updateUserProfile();
-        updateBasicStats();
-    }
+    if (tabName === 'home') loadHomeData();
+    else if (tabName === 'stats') loadStatsData();
+    else if (tabName === 'profile') { updateUserProfile(); updateBasicStats(); }
 }
 
 // ==================== 工具函数 ====================
@@ -510,3 +516,5 @@ window.switchTab = switchTab;
 window.closeBottomSheet = closeBottomSheet;
 window.editStat = editStat;
 window.goToChatWithPlan = goToChatWithPlan;
+window.selectStatValue = selectStatValue;
+window.saveStatValue = saveStatValue;

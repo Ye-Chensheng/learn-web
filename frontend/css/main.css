@@ -1,10 +1,10 @@
-/* vibe-healing 主样式表 - v2.8 个性化健康计划 */
+/* vibe-healing 主样式表 - v2.9 UI 优化 */
 
 :root {
     /* 温暖自然色系 */
     --bg-color: #F9F9F6;
     --card-bg: #FFFFFF;
-    --primary-color: #87B095;  /* 鼠尾草绿 */
+    --primary-color: #87B095;
     --primary-light: #A8C9B5;
     --primary-dark: #6B9A7A;
     --text-primary: #2D3436;
@@ -38,7 +38,6 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* 容器 */
 .container {
     padding: 0;
     max-width: 480px;
@@ -47,7 +46,6 @@ body {
     min-height: 100vh;
 }
 
-/* 页面切换 */
 .page {
     display: none;
     padding: 16px;
@@ -74,10 +72,6 @@ body {
 
 .ai-insight-card:active {
     transform: scale(0.98);
-}
-
-.ai-insight-card:hover {
-    box-shadow: 0 4px 16px rgba(135, 176, 149, 0.2);
 }
 
 .ai-avatar {
@@ -112,7 +106,6 @@ body {
     padding: 12px;
     border-radius: 12px;
     border-left: 3px solid var(--primary-color);
-    margin-bottom: 8px;
 }
 
 .ai-hint {
@@ -121,6 +114,7 @@ body {
     display: flex;
     align-items: center;
     gap: 4px;
+    margin-top: 8px;
 }
 
 .ai-arrow {
@@ -208,7 +202,6 @@ body {
     font-size: 14px;
 }
 
-/* 动作分类 */
 .action-category {
     margin-bottom: 16px;
     padding-bottom: 16px;
@@ -244,7 +237,6 @@ body {
     gap: 8px;
 }
 
-/* 胶囊按钮 */
 .pill-btn {
     padding: 8px 16px;
     border: none;
@@ -262,13 +254,12 @@ body {
     opacity: 0.8;
 }
 
-/* 分类特定样式 */
 .water-category .pill-btn { background: var(--water-color); color: var(--water-text); }
 .food-category .pill-btn { background: var(--food-color); color: var(--food-text); }
 .sleep-category .pill-btn { background: var(--sleep-color); color: var(--sleep-text); }
 .exercise-category .pill-btn { background: var(--exercise-color); color: var(--exercise-text); }
 
-/* ==================== 统计页卡片 ==================== */
+/* ==================== 卡片样式 ==================== */
 .card {
     background: var(--card-bg);
     border-radius: 16px;
@@ -332,18 +323,6 @@ body {
     height: calc(100vh - 70px);
 }
 
-.chat-header {
-    padding: 16px;
-    background: var(--card-bg);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.chat-header h2 {
-    font-size: 17px;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
 .chat-messages {
     flex: 1;
     overflow-y: auto;
@@ -364,7 +343,7 @@ body {
 }
 
 .message-content {
-    max-width: 80%;
+    max-width: 85%;
     padding: 12px 16px;
     border-radius: 16px;
     font-size: 14px;
@@ -384,9 +363,43 @@ body {
     border-bottom-left-radius: 4px;
 }
 
-.message.agent .message-content.health-plan {
+/* 健康计划消息样式 - 直接作为 message-content */
+.message-content.health-plan {
     background: linear-gradient(135deg, #F5F7FA 0%, #E8F0F8 100%);
-    border-left: 3px solid var(--primary-color);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--primary-color);
+    padding: 16px;
+}
+
+.message-content.health-plan h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.message-content.health-plan p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 8px;
+}
+
+.message-content.health-plan p strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.message-content.health-plan .plan-note {
+    font-size: 13px;
+    color: var(--primary-color);
+    font-style: italic;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border-color);
 }
 
 .chat-input-area {
@@ -573,7 +586,7 @@ body {
     }
 }
 
-/* ==================== 底部弹窗 (Bottom Sheet) ==================== */
+/* ==================== 底部弹窗 ==================== */
 .bottom-sheet {
     display: none;
     position: fixed;
@@ -666,7 +679,6 @@ body {
     }
 }
 
-/* 时间选择按钮 */
 .time-options {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -693,7 +705,6 @@ body {
     color: var(--primary-color);
 }
 
-/* 按钮 */
 .btn {
     padding: 12px 24px;
     border: none;
@@ -728,7 +739,6 @@ body {
     background: var(--border-color);
 }
 
-/* 表单元素 */
 .form-group {
     margin-bottom: 16px;
 }
@@ -757,39 +767,6 @@ body {
     box-shadow: 0 0 0 3px rgba(135, 176, 149, 0.1);
 }
 
-/* 健康计划卡片 */
-.health-plan-card {
-    background: linear-gradient(135deg, #F5F7FA 0%, #E8F0F8 100%);
-    border-radius: 16px;
-    padding: 16px;
-    margin: 16px 0;
-    border-left: 4px solid var(--primary-color);
-}
-
-.health-plan-card h4 {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 12px;
-}
-
-.health-plan-card p {
-    font-size: 14px;
-    color: var(--text-secondary);
-    line-height: 1.7;
-    margin-bottom: 8px;
-}
-
-.health-plan-card .plan-note {
-    font-size: 13px;
-    color: var(--primary-color);
-    font-style: italic;
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px dashed var(--border-color);
-}
-
-/* 响应式 */
 @media (min-width: 480px) {
     .container {
         border-radius: 0;
