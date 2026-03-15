@@ -481,7 +481,8 @@ window.saveStatValue = function(type, value) {
         updateBasicStats();
         updateUserProfile();
         showToast(`✅ 体重已更新为 ${value}kg`, 'success');
-    } else if (type === 'gender') {
+    } else if (type === 'gender' || (type === null && value)) {
+        // type === null 时来自 selectStatValue 的性别选择
         currentUser.gender = value;
         updateBasicStats();
         updateUserProfile();
