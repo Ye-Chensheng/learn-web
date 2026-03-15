@@ -36,12 +36,13 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initApp() {
-    console.log('🦞 vibe-healing v3.1 启动中...');
+    console.log('🦞 vibe-healing v3.2 启动中...');
     await initUser();
     updateDateTime();
     updateBackToTodayButton();
     updateCheckInDisplay();
     await loadHomeData();
+    await loadHealthIndex();
     console.log('✅ 应用初始化完成');
 }
 
@@ -126,6 +127,35 @@ function recordCheckIn() {
     if (!hasCheckIn(dateStr)) {
         saveCheckIn(dateStr);
         showToast('🎉 恭喜！完成今日健康打卡', 'success');
+    }
+}
+
+// ==================== 健康指数 ====================
+
+async function loadHealthIndex() {
+    try {
+        const res = await fetch(`${API_BASE}/api/health/index?user_id=${currentUserId}`);
+        const result = await res.json();
+        
+        if (result.success && result.data) {
+            updateHealthIndexDisplay(result.data);
+        }
+    } catch (error) {
+        console.error('加载健康指数失败:', error);
+    }
+}
+
+function updateHealthIndexDisplay(indexData) {
+    // 更新首页健康指数显示
+    const healthIndexEl = document.getElementById('stat-health-index');
+    if (healthIndexEl && indexData.finalIndex > 0) {
+        healthIndexEl.textContent = Math.round(indexData.finalIndex);
+    }
+    
+    // 更新"我的"页面健康指数
+    const profileHealthIndexEl = document.getElementById('profile-health-index');
+    if (profileHealthIndexEl && indexData.finalIndex > 0) {
+        profileHealthIndexEl.textContent = Math.round(indexData.finalIndex);
     }
 }
 
@@ -543,10 +573,66 @@ window.selectTime = function(btn, time) {
     selectedTime = time;
 }
 
-window.confirmRecord = function() {
+window.confirmRecord = async function() {
     if (!selectedTime) selectedTime = '默认';
-    showToast(`✅ 已记录：${getValueLabel(currentRecordType, currentRecordValue)} (${selectedTime})`, 'success');
-    recordCheckIn();
+    
+    // 调用后端 API 记录健康数据
+    try {
+        let endpoint = '';
+        let data = { user_id: currentUserId };
+        
+        switch (currentRecordType) {
+            case 'water':
+                endpoint = '/api/health/water';
+                // 根据选择的水量转换为 ml
+                const waterMap = { '300ml': 300, '500ml': 500, '1L': 1000, '2L': 2000 };
+                data.amount_ml = waterMap[currentRecordValue] || 300;
+                data.time_period = selectedTime;
+                break;
+            case 'food':
+                endpoint = '/api/health/food';
+                data.food_type = currentRecordValue;
+                data.meal_type = selectedTime;
+                break;
+            case 'sleep':
+                endpoint = '/api/health/sleep';
+                // 根据选择的睡眠时长转换为小时
+                const sleepMap = { '<6h': 5, '6-7h': 6.5, '7-8h': 7.5, '>8h': 9 };
+                data.sleep_hours = sleepMap[currentRecordValue] || 7;
+                data.time_period = selectedTime;
+                break;
+            case 'exercise':
+                endpoint = '/api/health/exercise';
+                // 根据选择的运动时长转换为分钟
+                const exerciseMap = { '<30min': 20, '30-60min': 45, '1-2h': 90, '>2h': 150 };
+                data.duration_min = exerciseMap[currentRecordValue] || 30;
+                data.time_period = selectedTime;
+                break;
+        }
+        
+        if (endpoint) {
+            const res = await fetch(`${API_BASE}${endpoint}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            
+            const result = await res.json();
+            if (result.success) {
+                showToast(`✅ 已记录：${getValueLabel(currentRecordType, currentRecordValue)} (${selectedTime})`, 'success');
+                recordCheckIn();
+                // 更新健康指数显示
+                loadHealthIndex();
+            } else {
+                showToast('❌ 记录失败', 'error');
+            }
+        }
+    } catch (error) {
+        console.error('记录健康数据失败:', error);
+        showToast(`✅ 已记录：${getValueLabel(currentRecordType, currentRecordValue)} (${selectedTime})`, 'success');
+        recordCheckIn();
+    }
+    
     closeBottomSheet();
 }
 
@@ -617,9 +703,9 @@ window.switchTab = function(tabName) {
     const activeBtn = document.querySelector(`.tab-btn[onclick="switchTab('${tabName}')"]`);
     if (activeBtn) activeBtn.classList.add('active');
     
-    if (tabName === 'home') { loadHomeData(); updateCheckInDisplay(); }
+    if (tabName === 'home') { loadHomeData(); updateCheckInDisplay(); loadHealthIndex(); }
     else if (tabName === 'stats') loadStatsData();
-    else if (tabName === 'profile') { updateUserProfile(); updateBasicStats(); }
+    else if (tabName === 'profile') { updateUserProfile(); updateBasicStats(); loadHealthIndex(); }
 }
 
 // ==================== 工具函数 ====================

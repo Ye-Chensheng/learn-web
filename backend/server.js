@@ -9,6 +9,9 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const fs = require('fs');
 
+// 导入健康指数计算引擎
+const healthIndex = require('./health-index');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -32,7 +35,14 @@ function initDatabase() {
         chatSummaries: [],
         userTags: [],
         weeklyPlans: [],
-        aiSuggestions: []
+        aiSuggestions: [],
+        // 健康指数相关表
+        daily_health_records: [],
+        water_records: [],
+        food_records: [],
+        sleep_records: [],
+        exercise_records: [],
+        health_index_history: []
     };
     
     if (!fs.existsSync(dbPath)) {
@@ -652,6 +662,127 @@ app.listen(PORT, '0.0.0.0', () => {
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
     `);
+});
+
+// ==================== 健康指数 API ====================
+
+// 记录喝水
+app.post('/api/health/water', (req, res) => {
+    const { user_id, amount_ml, time_period } = req.body;
+    
+    if (!user_id || !amount_ml) {
+        return res.json({ success: false, message: '缺少必要参数' });
+    }
+    
+    try {
+        const result = healthIndex.recordWater(user_id, amount_ml, time_period);
+        res.json(result);
+    } catch (error) {
+        console.error('记录喝水失败:', error);
+        res.json({ success: false, message: '记录失败' });
+    }
+});
+
+// 记录饮食
+app.post('/api/health/food', (req, res) => {
+    const { user_id, food_type, meal_type } = req.body;
+    
+    if (!user_id || !food_type) {
+        return res.json({ success: false, message: '缺少必要参数' });
+    }
+    
+    try {
+        const result = healthIndex.recordFood(user_id, food_type, meal_type);
+        res.json(result);
+    } catch (error) {
+        console.error('记录饮食失败:', error);
+        res.json({ success: false, message: '记录失败' });
+    }
+});
+
+// 记录睡眠
+app.post('/api/health/sleep', (req, res) => {
+    const { user_id, sleep_hours, sleep_quality, time_period } = req.body;
+    
+    if (!user_id || !sleep_hours) {
+        return res.json({ success: false, message: '缺少必要参数' });
+    }
+    
+    try {
+        const result = healthIndex.recordSleep(user_id, sleep_hours, sleep_quality, time_period);
+        res.json(result);
+    } catch (error) {
+        console.error('记录睡眠失败:', error);
+        res.json({ success: false, message: '记录失败' });
+    }
+});
+
+// 记录运动
+app.post('/api/health/exercise', (req, res) => {
+    const { user_id, duration_min, exercise_type, time_period } = req.body;
+    
+    if (!user_id || !duration_min) {
+        return res.json({ success: false, message: '缺少必要参数' });
+    }
+    
+    try {
+        const result = healthIndex.recordExercise(user_id, duration_min, exercise_type, time_period);
+        res.json(result);
+    } catch (error) {
+        console.error('记录运动失败:', error);
+        res.json({ success: false, message: '记录失败' });
+    }
+});
+
+// 获取当前健康指数
+app.get('/api/health/index', (req, res) => {
+    const { user_id } = req.query;
+    
+    if (!user_id) {
+        return res.json({ success: false, message: '缺少 user_id' });
+    }
+    
+    try {
+        const indexData = healthIndex.getCurrentHealthIndex(user_id);
+        res.json({ success: true, data: indexData });
+    } catch (error) {
+        console.error('获取健康指数失败:', error);
+        res.json({ success: false, message: '获取失败' });
+    }
+});
+
+// 获取健康指数历史
+app.get('/api/health/history', (req, res) => {
+    const { user_id, days = 30 } = req.query;
+    
+    if (!user_id) {
+        return res.json({ success: false, message: '缺少 user_id' });
+    }
+    
+    try {
+        const history = healthIndex.getHealthIndexHistory(user_id, parseInt(days));
+        res.json({ success: true, data: history });
+    } catch (error) {
+        console.error('获取健康指数历史失败:', error);
+        res.json({ success: false, message: '获取失败' });
+    }
+});
+
+// 获取每日记录
+app.get('/api/health/daily', (req, res) => {
+    const { user_id, date } = req.query;
+    
+    if (!user_id) {
+        return res.json({ success: false, message: '缺少 user_id' });
+    }
+    
+    try {
+        const records = healthIndex.getDailyRecords(user_id, date || healthIndex.getDateDaysAgo(0));
+        res.json({ success: true, data: records });
+    } catch (error) {
+        console.error('获取每日记录失败:', error);
+        res.json({ success: false, message: '获取失败' });
+    }
 });
 
 module.exports = app;
