@@ -15,13 +15,23 @@
         <section id="page-home" class="page active">
             
             <!-- 1. 顶部 AI 动态关怀卡片 -->
-            <div class="ai-insight-card" onclick="goToChatWithPlan()">
-                <div class="ai-avatar">🌱</div>
-                <div class="ai-content">
-                    <p class="ai-greeting" id="ai-greeting">晚上好！</p>
-                    <p class="ai-suggestion" id="ai-suggestion">最近您有部分可支配时间，可以尝试利用一点固定时间做运动哦～喝水健康饮食的习惯也不要忘了哦！</p>
+            <div class="ai-insight-card">
+                <div class="ai-header">
+                    <div class="ai-avatar">🌱</div>
+                    <div class="ai-header-content">
+                        <div class="ai-greeting-wrapper">
+                            <p class="ai-greeting" id="ai-greeting">晚上好！</p>
+                            <p class="ai-date" id="ai-date" onclick="openDateSelector()">2026-3-15 周日</p>
+                        </div>
+                        <p class="ai-streak" id="ai-streak">已坚持记录 0 天</p>
+                    </div>
                 </div>
-                <div class="ai-arrow">›</div>
+                <div class="ai-message" onclick="goToChatWithPlan()">
+                    <div class="ai-message-bubble">
+                        <p class="ai-suggestion" id="ai-suggestion">最近状态不错哦！继续保持运动和健康饮食的好习惯～</p>
+                    </div>
+                    <div class="ai-message-arrow">›</div>
+                </div>
                 <div class="ai-hint">💬 点击查看今日健康小 tips</div>
             </div>
 
@@ -155,7 +165,6 @@
         <section id="page-chat" class="page">
             <div class="chat-container">
                 <div class="chat-messages" id="chat-messages">
-                    <!-- 默认欢迎消息 -->
                     <div class="message agent">
                         <div class="message-content">
                             你好呀！我是你的健康陪伴搭子～ 今天过得怎么样？有什么想和我分享的吗？💬
@@ -220,7 +229,7 @@
                         不是帮你短期减肥，而是帮你在高压工作与有限时间里，<br>
                         维持一种可持续的健康生活方式。
                     </p>
-                    <p class="version">v2.9 UI 优化</p>
+                    <p class="version">v3.0 日期选择 + 打卡统计</p>
                 </div>
             </div>
         </section>

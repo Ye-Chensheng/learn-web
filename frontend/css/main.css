@@ -1,7 +1,6 @@
-/* vibe-healing 主样式表 - v2.9 UI 优化 */
+/* vibe-healing 主样式表 - v3.0 日期选择 + 打卡统计 */
 
 :root {
-    /* 温暖自然色系 */
     --bg-color: #F9F9F6;
     --card-bg: #FFFFFF;
     --primary-color: #87B095;
@@ -12,7 +11,6 @@
     --text-light: #B8C5D1;
     --border-color: #E8ECEF;
     
-    /* 分类颜色 */
     --water-color: #E8F4F8;
     --water-text: #4A9FB5;
     --food-color: #FFF5E6;
@@ -61,17 +59,14 @@ body {
     border-radius: 20px;
     padding: 20px;
     margin-bottom: 12px;
+    box-shadow: 0 2px 12px rgba(135, 176, 149, 0.1);
+}
+
+.ai-header {
     display: flex;
     gap: 16px;
     align-items: flex-start;
-    box-shadow: 0 2px 12px rgba(135, 176, 149, 0.1);
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    position: relative;
-}
-
-.ai-insight-card:active {
-    transform: scale(0.98);
+    margin-bottom: 16px;
 }
 
 .ai-avatar {
@@ -87,41 +82,83 @@ body {
     box-shadow: 0 4px 12px rgba(135, 176, 149, 0.3);
 }
 
-.ai-content {
+.ai-header-content {
     flex: 1;
+}
+
+.ai-greeting-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
 }
 
 .ai-greeting {
     font-size: 16px;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 8px;
+}
+
+.ai-date {
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.ai-date:active {
+    background: rgba(135, 176, 149, 0.2);
+}
+
+.ai-streak {
+    font-size: 13px;
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+.ai-message {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.ai-message:active {
+    transform: scale(0.98);
+}
+
+.ai-message-bubble {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 12px 16px;
+    border-radius: 12px;
+    border-left: 3px solid var(--primary-color);
 }
 
 .ai-suggestion {
     font-size: 14px;
     color: var(--text-secondary);
     line-height: 1.7;
-    background: rgba(255, 255, 255, 0.6);
-    padding: 12px;
-    border-radius: 12px;
-    border-left: 3px solid var(--primary-color);
+}
+
+.ai-message-arrow {
+    font-size: 20px;
+    color: var(--primary-color);
+    opacity: 0.5;
+    flex-shrink: 0;
+    margin-top: 2px;
 }
 
 .ai-hint {
     font-size: 12px;
     color: var(--primary-color);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-top: 8px;
-}
-
-.ai-arrow {
-    font-size: 24px;
-    color: var(--primary-color);
-    opacity: 0.5;
-    align-self: center;
+    text-align: center;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(135, 176, 149, 0.3);
 }
 
 /* ==================== 基础健康信息栏 ==================== */
@@ -245,8 +282,6 @@ body {
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
-    background: var(--bg-color);
-    color: var(--text-primary);
 }
 
 .pill-btn:active {
@@ -265,7 +300,6 @@ body {
     border-radius: 16px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     margin-bottom: 12px;
-    overflow: hidden;
 }
 
 .card-header {
@@ -363,12 +397,12 @@ body {
     border-bottom-left-radius: 4px;
 }
 
-/* 健康计划消息样式 - 直接作为 message-content */
 .message-content.health-plan {
     background: linear-gradient(135deg, #F5F7FA 0%, #E8F0F8 100%);
     border: 1px solid var(--border-color);
     border-left: 4px solid var(--primary-color);
     padding: 16px;
+    max-width: 95%;
 }
 
 .message-content.health-plan h4 {
@@ -376,9 +410,6 @@ body {
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
 }
 
 .message-content.health-plan p {
@@ -390,7 +421,6 @@ body {
 
 .message-content.health-plan p strong {
     color: var(--text-primary);
-    font-weight: 600;
 }
 
 .message-content.health-plan .plan-note {
@@ -466,7 +496,6 @@ body {
     padding: 14px 0;
     border-bottom: 1px solid var(--border-color);
     cursor: pointer;
-    transition: background 0.2s;
 }
 
 .profile-row:active {
@@ -529,7 +558,6 @@ body {
     border: none;
     cursor: pointer;
     color: var(--text-secondary);
-    transition: color 0.2s;
 }
 
 .tab-btn.active {
@@ -544,7 +572,7 @@ body {
     font-size: 11px;
 }
 
-/* ==================== Toast 提示 ==================== */
+/* ==================== Toast ==================== */
 .toast-container {
     position: fixed;
     top: 20px;
@@ -564,7 +592,6 @@ body {
     border-radius: 8px;
     font-size: 14px;
     animation: slideDown 0.3s ease-out;
-    pointer-events: auto;
 }
 
 .toast.success {
@@ -576,14 +603,8 @@ body {
 }
 
 @keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* ==================== 底部弹窗 ==================== */
@@ -607,7 +628,6 @@ body {
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
-    animation: fadeIn 0.3s ease-out;
 }
 
 .bottom-sheet-content {
@@ -617,7 +637,6 @@ body {
     padding: 20px 16px 32px;
     max-height: 80vh;
     overflow-y: auto;
-    animation: slideUp 0.3s ease-out;
 }
 
 .bottom-sheet-header {
@@ -646,11 +665,6 @@ body {
     color: var(--text-secondary);
     cursor: pointer;
     padding: 8px;
-    line-height: 1;
-}
-
-.bottom-sheet-close:active {
-    color: var(--text-primary);
 }
 
 .sheet-title {
@@ -661,29 +675,10 @@ body {
     margin-bottom: 20px;
 }
 
-.sheet-body {
-    margin-bottom: 16px;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes slideUp {
-    from {
-        transform: translateY(100%);
-    }
-    to {
-        transform: translateY(0);
-    }
-}
-
 .time-options {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
-    margin-top: 16px;
 }
 
 .time-btn {
@@ -693,12 +688,9 @@ body {
     font-size: 14px;
     font-weight: 500;
     background: var(--card-bg);
-    color: var(--text-primary);
     cursor: pointer;
-    transition: all 0.2s;
 }
 
-.time-btn:active,
 .time-btn.selected {
     border-color: var(--primary-color);
     background: var(--water-color);
@@ -712,21 +704,11 @@ body {
     font-size: 15px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s;
 }
 
 .btn-primary {
     background: var(--primary-color);
     color: white;
-}
-
-.btn-primary:active {
-    background: var(--primary-dark);
-}
-
-.btn-block {
-    width: 100%;
-    margin-top: 12px;
 }
 
 .btn-secondary {
@@ -735,8 +717,9 @@ body {
     border: 1px solid var(--border-color);
 }
 
-.btn-secondary:active {
-    background: var(--border-color);
+.btn-block {
+    width: 100%;
+    margin-top: 12px;
 }
 
 .form-group {
@@ -747,7 +730,6 @@ body {
     display: block;
     font-size: 14px;
     font-weight: 500;
-    color: var(--text-primary);
     margin-bottom: 8px;
 }
 
@@ -757,16 +739,72 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 10px;
     font-size: 15px;
-    color: var(--text-primary);
     background: var(--bg-color);
 }
 
-.form-control:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(135, 176, 149, 0.1);
+/* 日期选择器样式 */
+.date-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
 }
 
+.date-cell {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: var(--bg-color);
+    cursor: pointer;
+    font-size: 13px;
+    border: 2px solid transparent;
+}
+
+.date-cell.today {
+    border-color: var(--primary-color);
+    background: var(--water-color);
+}
+
+.date-cell.has-record {
+    background: var(--exercise-color);
+}
+
+.date-cell.selected {
+    border-color: var(--primary-color);
+    background: var(--primary-color);
+    color: white;
+}
+
+.date-cell .day-num {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.date-cell .day-week {
+    font-size: 10px;
+    opacity: 0.7;
+}
+
+.date-picker-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.date-picker-nav button {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 8px;
+    color: var(--primary-color);
+}
+
+/* 响应式 */
 @media (min-width: 480px) {
     .container {
         border-radius: 0;

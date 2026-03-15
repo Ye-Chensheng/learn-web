@@ -1,42 +1,44 @@
 /**
- * vibe-healing 前端应用 - v2.9 UI 优化
- * 健康陪伴系统 H5 客户端
+ * vibe-healing 前端应用 - v3.0 日期选择 + 打卡统计
  */
 
-// API 基础 URL
 const API_BASE = window.location.origin + '/api';
 
-// 当前用户 ID（MVP 使用固定 ID）
 let currentUserId = 1;
 let currentUser = null;
-
-// 临时存储
 let currentRecordType = null;
 let currentRecordValue = null;
 let selectedTime = null;
 
-// 用户示例数据（用于演示个性化建议）
+// 打卡记录存储 (本地存储模拟)
+let checkInRecords = {};
+
+// 用户示例数据
 const userDemoProfile = {
     wakeTime: '7:30-8:00',
     workStart: '9:00-9:30',
     lunchBreak: '12:00-13:00',
-    afternoonWork: '13:00-18:00',
-    dinnerBreak: '18:00-19:00',
     offWork: '20:00-21:00',
-    hasGym: true,
     goal: '减脂'
 };
+
+// 当前选中的日期
+let selectedDate = new Date();
+let currentPickerMonth = new Date();
 
 // ==================== 初始化 ====================
 
 document.addEventListener('DOMContentLoaded', () => {
     initApp();
     setupEventListeners();
+    loadCheckInRecords();
 });
 
 async function initApp() {
-    console.log('🦞 vibe-healing v2.9 启动中...');
+    console.log('🦞 vibe-healing v3.0 启动中...');
     await initUser();
+    updateDateTime();
+    updateCheckInDisplay();
     await loadHomeData();
     console.log('✅ 应用初始化完成');
 }
@@ -47,6 +49,58 @@ function setupEventListeners() {
         chatInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendMessage();
         });
+    }
+}
+
+// ==================== 日期时间 ====================
+
+function updateDateTime() {
+    const now = new Date();
+    const dateEl = document.getElementById('ai-date');
+    const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    
+    const dateStr = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()} ${weekDays[now.getDay()]}`;
+    if (dateEl) dateEl.textContent = dateStr;
+}
+
+// ==================== 打卡统计 ====================
+
+function loadCheckInRecords() {
+    const stored = localStorage.getItem('vibe-healing-checkins');
+    if (stored) {
+        checkInRecords = JSON.parse(stored);
+    }
+}
+
+function saveCheckIn(dateStr) {
+    checkInRecords[dateStr] = true;
+    localStorage.setItem('vibe-healing-checkins', JSON.stringify(checkInRecords));
+    updateCheckInDisplay();
+}
+
+function getCheckInDays() {
+    return Object.keys(checkInRecords).length;
+}
+
+function hasCheckIn(dateStr) {
+    return checkInRecords[dateStr] === true;
+}
+
+function updateCheckInDisplay() {
+    const streakEl = document.getElementById('ai-streak');
+    const days = getCheckInDays();
+    if (streakEl) {
+        streakEl.textContent = `已坚持记录 ${days}天`;
+    }
+}
+
+// 记录打卡 (当用户完成任何健康记录时)
+function recordCheckIn() {
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+    if (!hasCheckIn(dateStr)) {
+        saveCheckIn(dateStr);
+        showToast('🎉 恭喜！完成今日健康打卡', 'success');
     }
 }
 
@@ -113,20 +167,13 @@ function updateBasicStats() {
     document.getElementById('stat-health-index').textContent = healthIndex;
 }
 
-// 健康指数计算逻辑
 function calculateHealthIndex() {
-    if (!currentUser.height_cm || !currentUser.weight_kg) {
-        return '--';
-    }
+    if (!currentUser.height_cm || !currentUser.weight_kg) return '--';
     
     const heightM = currentUser.height_cm / 100;
     const bmi = currentUser.weight_kg / (heightM * heightM);
-    
-    // 健康指数 = 100 - |22 - BMI| * 5
-    // BMI=22 时得 100 分，偏离越大分数越低
     const index = Math.round(100 - Math.abs(22 - bmi) * 5);
     
-    // 限制在 0-100 范围
     return Math.max(0, Math.min(100, index));
 }
 
@@ -138,7 +185,6 @@ async function loadHomeData() {
         const result = await res.json();
         if (result.success) renderAIInsight(result.data);
     } catch (error) {
-        console.error('加载首页数据失败:', error);
         renderDefaultAIInsight();
     }
 }
@@ -155,8 +201,8 @@ function renderAIInsight(data) {
     else greeting = '夜深啦！';
     
     const suggestions = [
-        '最近您有部分可支配时间，可以尝试利用一点固定时间做运动哦～喝水健康饮食的习惯也不要忘了哦！',
-        '最近您的工作/学习/事情较忙，可支配时间少，可以试试多喝一杯水，饭后多走两步路～',
+        '最近您有部分可支配时间，可以尝试利用一点固定时间做运动哦～',
+        '最近工作较忙，可以试试多喝一杯水，饭后多走两步路～',
         '最近状态不错哦！继续保持运动和健康饮食的好习惯～'
     ];
     
@@ -178,23 +224,108 @@ function renderDefaultAIInsight() {
     if (suggestionEl) suggestionEl.textContent = '💬 点击查看今日健康小 tips';
 }
 
-// ==================== 跳转到聊天页并显示健康计划 ====================
+// ==================== 日期选择器 ====================
+
+window.openDateSelector = function() {
+    const content = `
+        <div class="date-picker-nav">
+            <button onclick="changeMonth(-1)">‹</button>
+            <span id="picker-month">${currentPickerMonth.getFullYear()}年 ${currentPickerMonth.getMonth() + 1}月</span>
+            <button onclick="changeMonth(1)">›</button>
+        </div>
+        <div class="date-grid" id="date-grid"></div>
+        <div style="text-align: center; margin-top: 16px;">
+            <button class="btn btn-primary" onclick="selectCurrentDate()">选择当天</button>
+            <button class="btn btn-secondary" onclick="closeBottomSheet()" style="margin-top: 8px;">取消</button>
+        </div>
+    `;
+    
+    openBottomSheet('选择日期补充记录', content);
+    renderDateGrid();
+}
+
+window.changeMonth = function(delta) {
+    currentPickerMonth.setMonth(currentPickerMonth.getMonth() + delta);
+    renderDateGrid();
+}
+
+function renderDateGrid() {
+    const grid = document.getElementById('date-grid');
+    if (!grid) return;
+    
+    const year = currentPickerMonth.getFullYear();
+    const month = currentPickerMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startDay = firstDay.getDay();
+    const today = new Date();
+    
+    document.getElementById('picker-month').textContent = `${year}年 ${month + 1}月`;
+    
+    let html = '';
+    const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+    
+    // 星期标题
+    weekDays.forEach(day => {
+        html += `<div style="font-size: 11px; color: var(--text-secondary); text-align: center;">${day}</div>`;
+    });
+    
+    // 空白填充
+    for (let i = 0; i < startDay; i++) {
+        html += '<div></div>';
+    }
+    
+    // 日期
+    for (let day = 1; day <= lastDay.getDate(); day++) {
+        const date = new Date(year, month, day);
+        const dateStr = `${year}-${month + 1}-${day}`;
+        const isToday = date.toDateString() === today.toDateString();
+        const hasRecord = hasCheckIn(dateStr);
+        const isSelected = date.toDateString() === selectedDate.toDateString();
+        
+        let classes = 'date-cell';
+        if (isToday) classes += ' today';
+        if (hasRecord) classes += ' has-record';
+        if (isSelected) classes += ' selected';
+        
+        html += `
+            <div class="${classes}" onclick="selectDate(${year}, ${month}, ${day})">
+                <span class="day-num">${day}</span>
+                <span class="day-week">${weekDays[date.getDay()]}</span>
+            </div>
+        `;
+    }
+    
+    grid.innerHTML = html;
+}
+
+window.selectDate = function(year, month, day) {
+    selectedDate = new Date(year, month, day);
+    renderDateGrid();
+}
+
+window.selectCurrentDate = function() {
+    selectedDate = new Date();
+    currentPickerMonth = new Date();
+    renderDateGrid();
+    closeBottomSheet();
+    updateDateTime();
+    showToast('✅ 已选择今天', 'success');
+}
+
+// ==================== 跳转聊天页 ====================
 
 window.goToChatWithPlan = function() {
     switchTab('chat');
-    setTimeout(() => {
-        addHealthPlanMessage();
-    }, 300);
+    setTimeout(() => addHealthPlanMessage(), 300);
 }
 
 function addHealthPlanMessage() {
     const container = document.getElementById('chat-messages');
     if (!container) return;
     
-    // 检查是否已经显示过健康计划
     const existingPlan = container.querySelector('.health-plan');
     if (existingPlan) {
-        // 已经存在，滚动到底部即可
         container.scrollTop = container.scrollHeight;
         return;
     }
@@ -205,16 +336,16 @@ function addHealthPlanMessage() {
         <p>根据您的作息：早上${userDemoProfile.wakeTime}起床，${userDemoProfile.workStart}到公司，晚上${userDemoProfile.offWork}下班</p>
         
         <p style="margin-top: 12px;"><strong>🏃 运动建议</strong></p>
-        <p>• 午休时间 (${userDemoProfile.lunchBreak})：吃完饭可以去溜达 20-30 分钟，或去公司健身房锻炼</p>
-        <p>• 晚间时间 (${userDemoProfile.dinnerBreak})：如果不吃晚饭可以去健身房锻炼，吃晚饭就散步溜达</p>
-        <p>• 下班后 (${userDemoProfile.offWork})：有余力可以再去运动一小会，没有余力就回家休息迎接美好的第二天～</p>
+        <p>• 午休时间：吃完饭可以去溜达 20-30 分钟，或去公司健身房锻炼</p>
+        <p>• 晚间时间：如果不吃晚饭可以去健身房锻炼，吃晚饭就散步溜达</p>
+        <p>• 下班后：有余力可以再去运动一小会，没有余力就回家休息～</p>
         
         <p style="margin-top: 12px;"><strong>🥗 饮食建议</strong></p>
-        <p>• 减脂期推荐：早餐鸡蛋 + 牛奶 + 全麦面包，午餐选择清淡档口（蒸/煮/烤），晚餐少量主食 + 大量蔬菜</p>
+        <p>• 减脂期推荐：早餐鸡蛋 + 牛奶 + 全麦面包，午餐选择清淡档口</p>
         <p>• 如果带饭：可以准备鸡胸肉/鱼肉 + 糙米饭 + 西兰花/时蔬</p>
         <p>• 多喝水！每天目标 8 杯以上～</p>
         
-        <p class="plan-note">💡 小贴士：不用追求完美，偶尔吃多了也没关系，第二天恢复正常就好～健康是长期的，不是短期的刻意哦！🦞</p>
+        <p class="plan-note">💡 小贴士：不用追求完美，偶尔吃多了也没关系～健康是长期的，不是短期的刻意哦！🦞</p>
     `;
     
     const messageEl = document.createElement('div');
@@ -286,33 +417,11 @@ window.editStat = function(statType) {
         health: {
             title: '健康指数说明',
             content: `
-                <div style="padding: 16px 0;">
-                    <p style="margin-bottom: 16px; line-height: 1.7;">
-                        <strong>健康指数计算逻辑：</strong>
-                    </p>
-                    <p style="margin-bottom: 12px; line-height: 1.7;">
-                        <strong>1️⃣ 先计算 BMI</strong><br>
-                        BMI = 体重 (kg) ÷ 身高 (m)²
-                    </p>
-                    <p style="margin-bottom: 12px; line-height: 1.7;">
-                        <strong>2️⃣ 计算健康指数</strong><br>
-                        健康指数 = 100 - |22 - BMI| × 5
-                    </p>
-                    <p style="margin-bottom: 12px; line-height: 1.7;">
-                        <strong>3️⃣ 说明</strong><br>
-                        • BMI=22 时，健康指数=100（最理想）<br>
-                        • BMI 偏离 22 越多，分数越低<br>
-                        • 分数范围：0-100
-                    </p>
-                    <p style="margin-bottom: 12px; line-height: 1.7;">
-                        <strong>4️⃣ 参考标准</strong><br>
-                        • 80-100：健康范围<br>
-                        • 60-79：需关注<br>
-                        • 0-59：建议咨询医生
-                    </p>
-                    <p style="color: var(--primary-color); font-style: italic; margin-top: 16px;">
-                        💡 健康指数仅供参考，具体健康状况请咨询专业医生哦～
-                    </p>
+                <div style="padding: 16px 0; line-height: 1.8;">
+                    <p><strong>计算逻辑：</strong></p>
+                    <p>1️⃣ BMI = 体重 (kg) ÷ 身高 (m)²</p>
+                    <p>2️⃣ 健康指数 = 100 - |22 - BMI| × 5</p>
+                    <p>3️⃣ 80-100 健康范围，60-79 需关注，0-59 建议咨询医生</p>
                 </div>
                 <button class="btn btn-secondary btn-block" onclick="closeBottomSheet()">知道了</button>
             `
@@ -320,9 +429,7 @@ window.editStat = function(statType) {
     };
     
     const config = configs[statType];
-    if (config) {
-        openBottomSheet(config.title, config.content, config.onSave);
-    }
+    if (config) openBottomSheet(config.title, config.content, config.onSave);
 }
 
 window.selectStatValue = function(btn, value) {
@@ -406,6 +513,7 @@ window.selectTime = function(btn, time) {
 window.confirmRecord = function() {
     if (!selectedTime) selectedTime = '默认';
     showToast(`✅ 已记录：${getValueLabel(currentRecordType, currentRecordValue)} (${selectedTime})`, 'success');
+    recordCheckIn(); // 记录打卡
     closeBottomSheet();
 }
 
@@ -445,11 +553,8 @@ async function sendMessage() {
         });
         
         const result = await res.json();
-        if (result.success) {
-            addChatMessage(result.data.reply, 'agent');
-        }
+        if (result.success) addChatMessage(result.data.reply, 'agent');
     } catch (error) {
-        console.error('发送消息失败:', error);
         addChatMessage('抱歉，我现在有点累，稍后再聊～', 'agent');
     }
 }
@@ -479,7 +584,7 @@ window.switchTab = function(tabName) {
     const activeBtn = document.querySelector(`.tab-btn[onclick="switchTab('${tabName}')"]`);
     if (activeBtn) activeBtn.classList.add('active');
     
-    if (tabName === 'home') loadHomeData();
+    if (tabName === 'home') { loadHomeData(); updateCheckInDisplay(); }
     else if (tabName === 'stats') loadStatsData();
     else if (tabName === 'profile') { updateUserProfile(); updateBasicStats(); }
 }
@@ -518,3 +623,7 @@ window.editStat = editStat;
 window.goToChatWithPlan = goToChatWithPlan;
 window.selectStatValue = selectStatValue;
 window.saveStatValue = saveStatValue;
+window.openDateSelector = openDateSelector;
+window.changeMonth = changeMonth;
+window.selectDate = selectDate;
+window.selectCurrentDate = selectCurrentDate;
