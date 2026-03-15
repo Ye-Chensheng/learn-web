@@ -15,30 +15,36 @@
         <section id="page-home" class="page active">
             
             <!-- 1. 顶部 AI 动态关怀卡片 -->
-            <div class="ai-insight-card">
+            <div class="ai-insight-card" onclick="goToChatWithPlan()">
                 <div class="ai-avatar">🌱</div>
                 <div class="ai-content">
                     <p class="ai-greeting" id="ai-greeting">今天辛苦啦！</p>
-                    <p class="ai-suggestion" id="ai-suggestion">最近您的工作/学习/事情较忙，可支配时间少，可以试试多喝一杯水，饭后多走两步路，少吃一口晚餐，从良好健康小习惯做起。</p>
+                    <p class="ai-suggestion" id="ai-suggestion">最近您有部分可支配时间，可以尝试利用一点固定时间做运动哦～喝水健康饮食的习惯也不要忘了哦！</p>
+                    <p class="ai-hint">💬 点击查看详细健康计划</p>
                 </div>
+                <div class="ai-arrow">›</div>
             </div>
 
             <!-- 2. 基础健康信息栏 -->
             <div class="basic-stats-row">
-                <div class="stat-mini">
+                <div class="stat-mini" onclick="editStat('gender')">
                     <span class="stat-mini-icon">👤</span>
+                    <span class="stat-mini-label">性别</span>
                     <span class="stat-mini-value" id="stat-gender">--</span>
                 </div>
-                <div class="stat-mini">
+                <div class="stat-mini" onclick="editStat('height')">
                     <span class="stat-mini-icon">📏</span>
+                    <span class="stat-mini-label">身高</span>
                     <span class="stat-mini-value" id="stat-height">--</span>
                 </div>
-                <div class="stat-mini">
+                <div class="stat-mini" onclick="editStat('weight')">
                     <span class="stat-mini-icon">⚖️</span>
+                    <span class="stat-mini-label">体重</span>
                     <span class="stat-mini-value" id="stat-weight">--</span>
                 </div>
-                <div class="stat-mini">
+                <div class="stat-mini" onclick="editStat('health')">
                     <span class="stat-mini-icon">💚</span>
+                    <span class="stat-mini-label">健康指数</span>
                     <span class="stat-mini-value" id="stat-health-index">--</span>
                 </div>
             </div>
@@ -67,16 +73,16 @@
                     </div>
                 </div>
 
-                <!-- 吃饭 -->
+                <!-- 饮食 -->
                 <div class="action-category food-category">
                     <div class="category-header">
                         <span class="category-icon">🥗</span>
-                        <span class="category-name">吃饭</span>
+                        <span class="category-name">饮食</span>
                     </div>
                     <div class="category-options">
-                        <button class="pill-btn" onclick="quickRecord('food', '减脂餐')">减脂餐</button>
-                        <button class="pill-btn" onclick="quickRecord('food', '健康平衡')">健康平衡</button>
-                        <button class="pill-btn" onclick="quickRecord('food', '小不节制')">小不节制</button>
+                        <button class="pill-btn" onclick="quickRecord('food', '低卡/节食')">低卡/节食</button>
+                        <button class="pill-btn" onclick="quickRecord('food', '健康减脂')">健康减脂</button>
+                        <button class="pill-btn" onclick="quickRecord('food', '常规饮食')">常规饮食</button>
                         <button class="pill-btn" onclick="quickRecord('food', '吃太多啦')">吃太多啦</button>
                     </div>
                 </div>
@@ -148,6 +154,9 @@
         <!-- 聊天页 -->
         <section id="page-chat" class="page">
             <div class="chat-container">
+                <div class="chat-header">
+                    <h2>💬 健康陪伴搭子</h2>
+                </div>
                 <div class="chat-messages" id="chat-messages">
                     <div class="message agent">
                         <div class="message-content">
@@ -181,16 +190,24 @@
 
             <div class="card">
                 <div class="card-header">
-                    <h2>健康数据</h2>
+                    <h2>健康管理</h2>
                 </div>
                 <div class="card-body">
-                    <div class="data-row">
-                        <span>身高</span>
-                        <span id="user-height">-- cm</span>
+                    <div class="profile-row" onclick="editStat('gender')">
+                        <span class="profile-label">👤 性别</span>
+                        <span class="profile-value" id="profile-gender">--</span>
                     </div>
-                    <div class="data-row">
-                        <span>体重</span>
-                        <span id="user-weight">-- kg</span>
+                    <div class="profile-row" onclick="editStat('height')">
+                        <span class="profile-label">📏 身高</span>
+                        <span class="profile-value" id="profile-height">--</span>
+                    </div>
+                    <div class="profile-row" onclick="editStat('weight')">
+                        <span class="profile-label">⚖️ 体重</span>
+                        <span class="profile-value" id="profile-weight">--</span>
+                    </div>
+                    <div class="profile-row">
+                        <span class="profile-label">💚 健康指数</span>
+                        <span class="profile-value" id="profile-health-index">--</span>
                     </div>
                 </div>
             </div>
@@ -205,7 +222,7 @@
                         不是帮你短期减肥，而是帮你在高压工作与有限时间里，<br>
                         维持一种可持续的健康生活方式。
                     </p>
-                    <p class="version">v2.7 全新 UI</p>
+                    <p class="version">v2.8 个性化健康计划</p>
                 </div>
             </div>
         </section>
@@ -238,7 +255,10 @@
     <div id="bottom-sheet" class="bottom-sheet">
         <div class="bottom-sheet-overlay" onclick="closeBottomSheet()"></div>
         <div class="bottom-sheet-content">
-            <div class="bottom-sheet-handle"></div>
+            <div class="bottom-sheet-header">
+                <div class="bottom-sheet-handle"></div>
+                <button class="bottom-sheet-close" onclick="closeBottomSheet()">✕</button>
+            </div>
             <h3 id="sheet-title" class="sheet-title">标题</h3>
             <div id="sheet-body" class="sheet-body"></div>
         </div>

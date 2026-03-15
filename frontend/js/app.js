@@ -1,5 +1,5 @@
 /**
- * vibe-healing 前端应用 - v2.7 全新设计
+ * vibe-healing 前端应用 - v2.8 个性化健康计划
  * 健康陪伴系统 H5 客户端
  */
 
@@ -13,6 +13,19 @@ let currentUser = null;
 // 临时存储
 let currentRecordType = null;
 let currentRecordValue = null;
+let selectedTime = null;
+
+// 用户示例数据（用于演示个性化建议）
+const userDemoProfile = {
+    wakeTime: '7:30-8:00',
+    workStart: '9:00-9:30',
+    lunchBreak: '12:00-13:00',
+    afternoonWork: '13:00-18:00',
+    dinnerBreak: '18:00-19:00',
+    offWork: '20:00-21:00',
+    hasGym: true,
+    goal: '减脂'
+};
 
 // ==================== 初始化 ====================
 
@@ -22,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initApp() {
-    console.log('🦞 vibe-healing v2.7 启动中...');
+    console.log('🦞 vibe-healing v2.8 启动中...');
     
     // 初始化用户
     await initUser();
@@ -55,6 +68,10 @@ async function initUser() {
             body: JSON.stringify({
                 wx_openid: 'demo_user_001',
                 nickname: '小伙伴',
+                gender: '女',
+                height_cm: 168,
+                weight_kg: 55,
+                goal: '减脂'
             })
         });
         
@@ -67,6 +84,17 @@ async function initUser() {
         }
     } catch (error) {
         console.error('初始化用户失败:', error);
+        // 使用默认数据
+        currentUser = {
+            id: 1,
+            nickname: '小伙伴',
+            gender: '女',
+            height_cm: 168,
+            weight_kg: 55,
+            goal: '减脂'
+        };
+        updateUserProfile();
+        updateBasicStats();
     }
 }
 
@@ -75,27 +103,28 @@ function updateUserProfile() {
     
     document.getElementById('user-nickname').textContent = currentUser.nickname || '小伙伴';
     document.getElementById('user-id').textContent = currentUser.id;
-    document.getElementById('user-height').textContent = currentUser.height_cm ? `${currentUser.height_cm} cm` : '--';
-    document.getElementById('user-weight').textContent = currentUser.weight_kg ? `${currentUser.weight_kg} kg` : '--';
+    document.getElementById('profile-gender').textContent = currentUser.gender || '--';
+    document.getElementById('profile-height').textContent = currentUser.height_cm ? `${currentUser.height_cm} cm` : '--';
+    document.getElementById('profile-weight').textContent = currentUser.weight_kg ? `${currentUser.weight_kg} kg` : '--';
+    
+    // 计算健康指数 (简化 BMI)
+    const healthIndex = currentUser.height_cm && currentUser.weight_kg
+        ? Math.round(100 - Math.abs(22 - (currentUser.weight_kg / ((currentUser.height_cm / 100) ** 2))) * 5)
+        : '--';
+    document.getElementById('profile-health-index').textContent = healthIndex !== '--' ? `${healthIndex}` : '--';
 }
 
 function updateBasicStats() {
     if (!currentUser) return;
     
-    // 性别
     document.getElementById('stat-gender').textContent = currentUser.gender || '--';
-    
-    // 身高
     document.getElementById('stat-height').textContent = currentUser.height_cm ? `${currentUser.height_cm}cm` : '--';
-    
-    // 体重
     document.getElementById('stat-weight').textContent = currentUser.weight_kg ? `${currentUser.weight_kg}kg` : '--';
     
-    // 健康指数 (简化计算)
-    const bmi = currentUser.height_cm && currentUser.weight_kg 
-        ? (currentUser.weight_kg / ((currentUser.height_cm / 100) ** 2)).toFixed(1)
+    const healthIndex = currentUser.height_cm && currentUser.weight_kg
+        ? Math.round(100 - Math.abs(22 - (currentUser.weight_kg / ((currentUser.height_cm / 100) ** 2))) * 5)
         : '--';
-    document.getElementById('stat-health-index').textContent = bmi !== '--' ? `BMI ${bmi}` : '--';
+    document.getElementById('stat-health-index').textContent = healthIndex !== '--' ? `${healthIndex}` : '--';
 }
 
 // ==================== 首页数据 ====================
@@ -110,7 +139,6 @@ async function loadHomeData() {
         }
     } catch (error) {
         console.error('加载首页数据失败:', error);
-        // 显示默认问候
         renderDefaultAIInsight();
     }
 }
@@ -120,29 +148,20 @@ function renderAIInsight(data) {
     const greetingEl = document.getElementById('ai-greeting');
     const suggestionEl = document.getElementById('ai-suggestion');
     
-    // 根据时间段设置问候
     let greeting = '你好呀！';
-    if (hour >= 5 && hour < 12) {
-        greeting = '早上好！';
-    } else if (hour >= 12 && hour < 18) {
-        greeting = '下午好！';
-    } else if (hour >= 18 && hour < 23) {
-        greeting = '晚上好！';
-    } else {
-        greeting = '夜深啦！';
-    }
+    if (hour >= 5 && hour < 12) greeting = '早上好！';
+    else if (hour >= 12 && hour < 18) greeting = '下午好！';
+    else if (hour >= 18 && hour < 23) greeting = '晚上好！';
+    else greeting = '夜深啦！';
     
-    // 基于用户状态的建议（MVP 简化版）
     const suggestions = [
-        '最近您的工作/学习/事情较忙，可支配时间少，可以试试多喝一杯水，饭后多走两步路，少吃一口晚餐，从良好健康小习惯做起。',
         '最近您有部分可支配时间，可以尝试利用一点固定时间做运动哦～喝水健康饮食的习惯也不要忘了哦！',
-        '最近您晚上有空余的时间，可以尝试夜跑，或家附近的健身房/公园多锻炼一下哦！'
+        '最近您的工作/学习/事情较忙，可支配时间少，可以试试多喝一杯水，饭后多走两步路～',
+        '最近状态不错哦！继续保持运动和健康饮食的好习惯～'
     ];
     
-    const randomSuggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
-    
     if (greetingEl) greetingEl.textContent = greeting;
-    if (suggestionEl) suggestionEl.textContent = randomSuggestion;
+    if (suggestionEl) suggestionEl.textContent = suggestions[Math.floor(Math.random() * suggestions.length)];
 }
 
 function renderDefaultAIInsight() {
@@ -156,7 +175,50 @@ function renderDefaultAIInsight() {
     else if (hour >= 18 && hour < 23) greeting = '晚上好！';
     
     if (greetingEl) greetingEl.textContent = greeting;
-    if (suggestionEl) suggestionEl.textContent = '记录您的健康点滴，让 AI 助手更懂你～';
+    if (suggestionEl) suggestionEl.textContent = '💬 点击查看您的个性化健康计划';
+}
+
+// ==================== 跳转到聊天页并显示健康计划 ====================
+
+window.goToChatWithPlan = function() {
+    switchTab('chat');
+    
+    // 延迟发送健康计划消息
+    setTimeout(() => {
+        addHealthPlanMessage();
+    }, 300);
+}
+
+function addHealthPlanMessage() {
+    const container = document.getElementById('chat-messages');
+    if (!container) return;
+    
+    const planContent = `
+        <div class="health-plan-card">
+            <h4>📋 您的个性化健康小计划</h4>
+            <p><strong>⏰ 作息分析</strong></p>
+            <p>根据您的作息：早上${userDemoProfile.wakeTime}起床，${userDemoProfile.workStart}到公司，晚上${userDemoProfile.offWork}下班</p>
+            
+            <p style="margin-top: 12px;"><strong>🏃 运动建议</strong></p>
+            <p>• 午休时间 (${userDemoProfile.lunchBreak})：吃完饭可以去溜达 20-30 分钟，或去公司健身房锻炼</p>
+            <p>• 晚间时间 (${userDemoProfile.dinnerBreak})：如果不吃晚饭可以去健身房锻炼，吃晚饭就散步溜达</p>
+            <p>• 下班后 (${userDemoProfile.offWork})：有余力可以再去运动一小会，没有余力就回家休息迎接美好的第二天～</p>
+            
+            <p style="margin-top: 12px;"><strong>🥗 饮食建议</strong></p>
+            <p>• 减脂期推荐：早餐鸡蛋 + 牛奶 + 全麦面包，午餐选择清淡档口（蒸/煮/烤），晚餐少量主食 + 大量蔬菜</p>
+            <p>• 如果带饭：可以准备鸡胸肉/鱼肉 + 糙米饭 + 西兰花/时蔬</p>
+            <p>• 多喝水！每天目标 8 杯以上～</p>
+            
+            <p class="plan-note">💡 小贴士：不用追求完美，偶尔吃多了也没关系，第二天恢复正常就好～健康是长期的，不是短期的刻意哦！🦞</p>
+        </div>
+    `;
+    
+    const messageEl = document.createElement('div');
+    messageEl.className = 'message agent';
+    messageEl.innerHTML = `<div class="message-content health-plan">${planContent}</div>`;
+    
+    container.appendChild(messageEl);
+    container.scrollTop = container.scrollHeight;
 }
 
 // ==================== 统计页数据 ====================
@@ -181,9 +243,92 @@ function renderStats(stats) {
     document.getElementById('avg-mood').textContent = stats.avgMood?.toFixed(1) || '--';
 }
 
+// ==================== 编辑健康信息 ====================
+
+window.editStat = function(statType) {
+    const configs = {
+        gender: {
+            title: '编辑性别',
+            content: `
+                <div class="time-options">
+                    <button class="time-btn" onclick="selectStatValue(this, '女')">女</button>
+                    <button class="time-btn" onclick="selectStatValue(this, '男')">男</button>
+                </div>
+            `,
+            onSave: (value) => {
+                currentUser.gender = value;
+                updateUserProfile();
+                updateBasicStats();
+                showToast(`✅ 性别已更新为 ${value}`, 'success');
+            }
+        },
+        height: {
+            title: '编辑身高',
+            content: `
+                <div class="form-group">
+                    <label>身高 (cm)</label>
+                    <input type="number" id="edit-height-input" value="${currentUser.height_cm || 168}" class="form-control">
+                </div>
+                <button class="btn btn-primary btn-block" onclick="saveStatValue('height', document.getElementById('edit-height-input').value)">保存</button>
+            `
+        },
+        weight: {
+            title: '编辑体重',
+            content: `
+                <div class="form-group">
+                    <label>体重 (kg)</label>
+                    <input type="number" id="edit-weight-input" value="${currentUser.weight_kg || 55}" step="0.1" class="form-control">
+                </div>
+                <button class="btn btn-primary btn-block" onclick="saveStatValue('weight', document.getElementById('edit-weight-input').value)">保存</button>
+            `
+        },
+        health: {
+            title: '健康指数',
+            content: `
+                <p style="text-align: center; color: var(--text-secondary); margin: 20px 0;">
+                    健康指数根据身高体重自动计算<br>
+                    编辑身高或体重可更新指数
+                </p>
+                <button class="btn btn-secondary btn-block" onclick="closeBottomSheet()">知道了</button>
+            `
+        }
+    };
+    
+    const config = configs[statType];
+    if (config) {
+        openBottomSheet(config.title, config.content, config.onSave);
+    }
+}
+
+window.selectStatValue = function(btn, value) {
+    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    saveStatValue(null, value);
+}
+
+window.saveStatValue = function(type, value) {
+    if (type === 'height') {
+        currentUser.height_cm = parseFloat(value);
+        updateBasicStats();
+        updateUserProfile();
+        showToast(`✅ 身高已更新为 ${value}cm`, 'success');
+    } else if (type === 'weight') {
+        currentUser.weight_kg = parseFloat(value);
+        updateBasicStats();
+        updateUserProfile();
+        showToast(`✅ 体重已更新为 ${value}kg`, 'success');
+    } else if (type === 'gender') {
+        currentUser.gender = value;
+        updateBasicStats();
+        updateUserProfile();
+        showToast(`✅ 性别已更新为 ${value}`, 'success');
+    }
+    closeBottomSheet();
+}
+
 // ==================== 快捷记录 ====================
 
-function quickRecord(type, value) {
+window.quickRecord = function(type, value) {
     currentRecordType = type;
     currentRecordValue = value;
     
@@ -198,7 +343,7 @@ function quickRecord(type, value) {
     
     const content = `
         <div class="form-group">
-            <label>已选择：${getValueLabel(type, value)}</label>
+            <label>已选择：<strong>${getValueLabel(type, value)}</strong></label>
         </div>
         <div class="form-group">
             <label>请选择时间</label>
@@ -208,7 +353,10 @@ function quickRecord(type, value) {
                 `).join('')}
             </div>
         </div>
-        <button class="btn btn-primary btn-block" onclick="confirmRecord()">确认记录</button>
+        <div style="display: flex; gap: 10px; margin-top: 16px;">
+            <button class="btn btn-secondary" style="flex: 1;" onclick="closeBottomSheet()">取消</button>
+            <button class="btn btn-primary" style="flex: 1;" onclick="confirmRecord()">确认记录</button>
+        </div>
     `;
     
     openBottomSheet('记录健康努力', content);
@@ -224,37 +372,36 @@ function getValueLabel(type, value) {
     return labels[type] || value;
 }
 
-let selectedTime = null;
-
 window.selectTime = function(btn, time) {
     document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
     selectedTime = time;
 }
 
-window.confirmRecord = async function() {
+window.confirmRecord = function() {
     if (!selectedTime) {
         selectedTime = '默认';
     }
     
     showToast(`✅ 已记录：${getValueLabel(currentRecordType, currentRecordValue)} (${selectedTime})`, 'success');
     closeBottomSheet();
-    
-    // 这里可以调用 API 保存数据
-    // await saveRecord(currentRecordType, currentRecordValue, selectedTime);
 }
 
 // ==================== 底部弹窗 ====================
 
-function openBottomSheet(title, content) {
+let sheetCallback = null;
+
+function openBottomSheet(title, content, callback) {
     document.getElementById('sheet-title').textContent = title;
     document.getElementById('sheet-body').innerHTML = content;
     document.getElementById('bottom-sheet').classList.add('show');
     selectedTime = null;
+    sheetCallback = callback;
 }
 
 window.closeBottomSheet = function() {
     document.getElementById('bottom-sheet').classList.remove('show');
+    sheetCallback = null;
 }
 
 // ==================== 聊天功能 ====================
@@ -265,11 +412,9 @@ async function sendMessage() {
     
     if (!message) return;
     
-    // 添加用户消息
     addChatMessage(message, 'user');
     input.value = '';
     
-    // 发送 API 请求
     try {
         const res = await fetch(`${API_BASE}/chat`, {
             method: 'POST',
@@ -296,9 +441,7 @@ function addChatMessage(text, type) {
     
     const messageEl = document.createElement('div');
     messageEl.className = `message ${type}`;
-    messageEl.innerHTML = `
-        <div class="message-content">${escapeHtml(text)}</div>
-    `;
+    messageEl.innerHTML = `<div class="message-content">${escapeHtml(text)}</div>`;
     
     container.appendChild(messageEl);
     container.scrollTop = container.scrollHeight;
@@ -307,18 +450,15 @@ function addChatMessage(text, type) {
 // ==================== 页面切换 ====================
 
 window.switchTab = function(tabName) {
-    // 隐藏所有页面
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
     });
     
-    // 显示目标页面
     const targetPage = document.getElementById(`page-${tabName}`);
     if (targetPage) {
         targetPage.classList.add('active');
     }
     
-    // 更新按钮状态
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('active');
     });
@@ -328,7 +468,6 @@ window.switchTab = function(tabName) {
         activeBtn.classList.add('active');
     }
     
-    // 加载对应页面数据
     if (tabName === 'home') {
         loadHomeData();
     } else if (tabName === 'stats') {
@@ -351,7 +490,6 @@ function showToast(message, type = 'success') {
     
     container.appendChild(toast);
     
-    // 3 秒后移除
     setTimeout(() => {
         toast.style.opacity = '0';
         setTimeout(() => toast.remove(), 300);
@@ -364,9 +502,11 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// ==================== 导出给外部调用 ====================
+// ==================== 导出 ====================
 
 window.quickRecord = quickRecord;
 window.sendMessage = sendMessage;
 window.switchTab = switchTab;
 window.closeBottomSheet = closeBottomSheet;
+window.editStat = editStat;
+window.goToChatWithPlan = goToChatWithPlan;
