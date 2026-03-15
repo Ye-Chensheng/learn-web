@@ -134,7 +134,7 @@ function recordCheckIn() {
 
 async function loadHealthIndex() {
     try {
-        const res = await fetch(`${API_BASE}/api/health/index?user_id=${currentUserId}`);
+        const res = await fetch(`${API_BASE}/health/index?user_id=${currentUserId}`);
         const result = await res.json();
         
         if (result.success && result.data) {
@@ -210,9 +210,7 @@ function updateUserProfile() {
     document.getElementById('profile-gender').textContent = currentUser.gender || '--';
     document.getElementById('profile-height').textContent = currentUser.height_cm ? `${currentUser.height_cm} cm` : '--';
     document.getElementById('profile-weight').textContent = currentUser.weight_kg ? `${currentUser.weight_kg} kg` : '--';
-    
-    const healthIndex = calculateHealthIndex();
-    document.getElementById('profile-health-index').textContent = healthIndex;
+    // 健康指数由 loadHealthIndex() 从 API 获取后更新
 }
 
 function updateBasicStats() {
@@ -221,19 +219,7 @@ function updateBasicStats() {
     document.getElementById('stat-gender').textContent = currentUser.gender || '--';
     document.getElementById('stat-height').textContent = currentUser.height_cm ? `${currentUser.height_cm}cm` : '--';
     document.getElementById('stat-weight').textContent = currentUser.weight_kg ? `${currentUser.weight_kg}kg` : '--';
-    
-    const healthIndex = calculateHealthIndex();
-    document.getElementById('stat-health-index').textContent = healthIndex;
-}
-
-function calculateHealthIndex() {
-    if (!currentUser.height_cm || !currentUser.weight_kg) return '--';
-    
-    const heightM = currentUser.height_cm / 100;
-    const bmi = currentUser.weight_kg / (heightM * heightM);
-    const index = Math.round(100 - Math.abs(22 - bmi) * 5);
-    
-    return Math.max(0, Math.min(100, index));
+    // 健康指数由 loadHealthIndex() 从 API 获取后更新
 }
 
 // ==================== 首页数据 ====================
@@ -479,11 +465,14 @@ window.editStat = function(statType) {
         health: {
             title: '健康指数说明',
             content: `
-                <div style="padding: 16px 0; line-height: 1.8;">
-                    <p><strong>计算逻辑：</strong></p>
-                    <p>1️⃣ BMI = 体重 (kg) ÷ 身高 (m)²</p>
-                    <p>2️⃣ 健康指数 = 100 - |22 - BMI| × 5</p>
-                    <p>3️⃣ 80-100 健康范围，60-79 需关注，0-59 建议咨询医生</p>
+                <div style="padding: 16px 0; line-height: 1.8; font-size: 14px;">
+                    <p style="margin-bottom: 12px;"><strong>📊 健康指数基于 4 项指标：</strong></p>
+                    <p>💧 <strong>喝水 (25%)</strong> - 基于性别×体重建议量</p>
+                    <p>🥗 <strong>饮食 (30%)</strong> - 健康减脂 90 分，常规 70 分</p>
+                    <p>😴 <strong>睡眠 (25%)</strong> - 7-8 小时 85 分，8-10 小时 95 分</p>
+                    <p>🏃 <strong>运动 (20%)</strong> - 1-2 小时 95 分，30-60 分钟 80 分</p>
+                    <p style="margin-top: 16px; color: var(--primary-color);"><strong>📈 时间权重：</strong>1 天 40% + 3 天 30% + 7 天 20% + 30 天 10%</p>
+                    <p style="margin-top: 12px;"><strong>80-100</strong> 健康范围 | <strong>60-79</strong> 需关注 | <strong>0-59</strong> 建议咨询</p>
                 </div>
                 <button class="btn btn-secondary btn-block" onclick="closeBottomSheet()">知道了</button>
             `
@@ -583,26 +572,26 @@ window.confirmRecord = async function() {
         
         switch (currentRecordType) {
             case 'water':
-                endpoint = '/api/health/water';
+                endpoint = '/health/water';
                 // 根据选择的水量转换为 ml
                 const waterMap = { '300ml': 300, '500ml': 500, '1L': 1000, '2L': 2000 };
                 data.amount_ml = waterMap[currentRecordValue] || 300;
                 data.time_period = selectedTime;
                 break;
             case 'food':
-                endpoint = '/api/health/food';
+                endpoint = '/health/food';
                 data.food_type = currentRecordValue;
                 data.meal_type = selectedTime;
                 break;
             case 'sleep':
-                endpoint = '/api/health/sleep';
+                endpoint = '/health/sleep';
                 // 根据选择的睡眠时长转换为小时
                 const sleepMap = { '<6h': 5, '6-7h': 6.5, '7-8h': 7.5, '>8h': 9 };
                 data.sleep_hours = sleepMap[currentRecordValue] || 7;
                 data.time_period = selectedTime;
                 break;
             case 'exercise':
-                endpoint = '/api/health/exercise';
+                endpoint = '/health/exercise';
                 // 根据选择的运动时长转换为分钟
                 const exerciseMap = { '<30min': 20, '30-60min': 45, '1-2h': 90, '>2h': 150 };
                 data.duration_min = exerciseMap[currentRecordValue] || 30;
