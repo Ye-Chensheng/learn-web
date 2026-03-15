@@ -48,9 +48,26 @@ function initDatabase() {
     if (!fs.existsSync(dbPath)) {
         fs.writeFileSync(dbPath, JSON.stringify(defaultData, null, 2));
         console.log('✅ 数据库初始化完成');
+        return defaultData;
     }
     
-    return JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+    // 数据库已存在，检查并添加缺失的健康指数表
+    let data = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+    let updated = false;
+    
+    if (!data.water_records) { data.water_records = []; updated = true; }
+    if (!data.food_records) { data.food_records = []; updated = true; }
+    if (!data.sleep_records) { data.sleep_records = []; updated = true; }
+    if (!data.exercise_records) { data.exercise_records = []; updated = true; }
+    if (!data.daily_health_records) { data.daily_health_records = []; updated = true; }
+    if (!data.health_index_history) { data.health_index_history = []; updated = true; }
+    
+    if (updated) {
+        fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+        console.log('✅ 数据库表结构已更新（添加健康指数相关表）');
+    }
+    
+    return data;
 }
 
 // 保存数据
