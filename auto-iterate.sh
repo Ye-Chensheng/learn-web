@@ -35,18 +35,9 @@ else
     log "✅ 服务器已重启"
 fi
 
-# 更新开发日志
-TIMESTAMP=$(date '+%Y-%m-%d %H:%M')
-if grep -q "$TIMESTAMP" DEV_LOG.md 2>/dev/null; then
-    log "📝 开发日志已更新"
-else
-    echo "" >> DEV_LOG.md
-    echo "### $TIMESTAMP - 自动检查" >> DEV_LOG.md
-    echo "- ✅ 服务器运行正常" >> DEV_LOG.md
-    echo "- ✅ 心跳机制正常" >> DEV_LOG.md
-    echo "- ✅ 持续迭代中" >> DEV_LOG.md
-    log "📝 开发日志已更新"
-fi
+# 注意：不再自动修改 DEV_LOG.md
+# 开发日志只记录真实完成的功能/文档变更，不预写时间记录
+log "📝 系统日志已更新 (DEV_LOG.md 仅手动更新)"
 
 log "=== 迭代优化完成 ==="
 log ""
