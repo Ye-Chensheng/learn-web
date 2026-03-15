@@ -1,5 +1,5 @@
 /**
- * vibe-healing 前端应用 - v3.0 日期选择 + 打卡统计
+ * vibe-healing 前端应用 - v3.1 日期选择优化
  */
 
 const API_BASE = window.location.origin + '/api';
@@ -10,7 +10,7 @@ let currentRecordType = null;
 let currentRecordValue = null;
 let selectedTime = null;
 
-// 打卡记录存储 (本地存储模拟)
+// 打卡记录存储
 let checkInRecords = {};
 
 // 用户示例数据
@@ -22,9 +22,10 @@ const userDemoProfile = {
     goal: '减脂'
 };
 
-// 当前选中的日期
+// 日期相关
 let selectedDate = new Date();
 let currentPickerMonth = new Date();
+const today = new Date();
 
 // ==================== 初始化 ====================
 
@@ -35,9 +36,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initApp() {
-    console.log('🦞 vibe-healing v3.0 启动中...');
+    console.log('🦞 vibe-healing v3.1 启动中...');
     await initUser();
     updateDateTime();
+    updateBackToTodayButton();
     updateCheckInDisplay();
     await loadHomeData();
     console.log('✅ 应用初始化完成');
@@ -55,12 +57,37 @@ function setupEventListeners() {
 // ==================== 日期时间 ====================
 
 function updateDateTime() {
-    const now = new Date();
     const dateEl = document.getElementById('ai-date');
-    const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-    
-    const dateStr = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()} ${weekDays[now.getDay()]}`;
+    const dateStr = formatDate(selectedDate);
     if (dateEl) dateEl.textContent = dateStr;
+}
+
+function formatDate(date) {
+    const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${weekDays[date.getDay()]}`;
+}
+
+function isToday(date) {
+    return date.toDateString() === today.toDateString();
+}
+
+function updateBackToTodayButton() {
+    const btn = document.getElementById('btn-back-today');
+    if (btn) {
+        if (isToday(selectedDate)) {
+            btn.classList.add('hidden');
+        } else {
+            btn.classList.remove('hidden');
+        }
+    }
+}
+
+window.backToToday = function() {
+    selectedDate = new Date();
+    currentPickerMonth = new Date();
+    updateDateTime();
+    updateBackToTodayButton();
+    showToast('✅ 已返回今天', 'success');
 }
 
 // ==================== 打卡统计 ====================
@@ -94,14 +121,16 @@ function updateCheckInDisplay() {
     }
 }
 
-// 记录打卡 (当用户完成任何健康记录时)
 function recordCheckIn() {
-    const now = new Date();
-    const dateStr = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+    const dateStr = formatDateSimple(today);
     if (!hasCheckIn(dateStr)) {
         saveCheckIn(dateStr);
         showToast('🎉 恭喜！完成今日健康打卡', 'success');
     }
+}
+
+function formatDateSimple(date) {
+    return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 }
 
 // ==================== 用户相关 ====================
@@ -201,7 +230,7 @@ function renderAIInsight(data) {
     else greeting = '夜深啦！';
     
     const suggestions = [
-        '最近您有部分可支配时间，可以尝试利用一点固定时间做运动哦～',
+        '最近您有部分可支配时间，可以尝试利用一点固定时间做运动哦～喝水健康饮食的习惯也不要忘了哦！',
         '最近工作较忙，可以试试多喝一杯水，饭后多走两步路～',
         '最近状态不错哦！继续保持运动和健康饮食的好习惯～'
     ];
@@ -234,9 +263,9 @@ window.openDateSelector = function() {
             <button onclick="changeMonth(1)">›</button>
         </div>
         <div class="date-grid" id="date-grid"></div>
-        <div style="text-align: center; margin-top: 16px;">
-            <button class="btn btn-primary" onclick="selectCurrentDate()">选择当天</button>
-            <button class="btn btn-secondary" onclick="closeBottomSheet()" style="margin-top: 8px;">取消</button>
+        <div class="date-picker-actions">
+            <button class="btn btn-secondary" onclick="closeBottomSheet()">取消</button>
+            <button class="btn btn-primary" onclick="confirmDateSelection()">确认选择</button>
         </div>
     `;
     
@@ -258,7 +287,6 @@ function renderDateGrid() {
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const startDay = firstDay.getDay();
-    const today = new Date();
     
     document.getElementById('picker-month').textContent = `${year}年 ${month + 1}月`;
     
@@ -279,12 +307,12 @@ function renderDateGrid() {
     for (let day = 1; day <= lastDay.getDate(); day++) {
         const date = new Date(year, month, day);
         const dateStr = `${year}-${month + 1}-${day}`;
-        const isToday = date.toDateString() === today.toDateString();
+        const isTodayDate = date.toDateString() === today.toDateString();
         const hasRecord = hasCheckIn(dateStr);
         const isSelected = date.toDateString() === selectedDate.toDateString();
         
         let classes = 'date-cell';
-        if (isToday) classes += ' today';
+        if (isTodayDate) classes += ' today';
         if (hasRecord) classes += ' has-record';
         if (isSelected) classes += ' selected';
         
@@ -304,13 +332,17 @@ window.selectDate = function(year, month, day) {
     renderDateGrid();
 }
 
-window.selectCurrentDate = function() {
-    selectedDate = new Date();
-    currentPickerMonth = new Date();
-    renderDateGrid();
-    closeBottomSheet();
+window.confirmDateSelection = function() {
     updateDateTime();
-    showToast('✅ 已选择今天', 'success');
+    updateBackToTodayButton();
+    closeBottomSheet();
+    
+    const dateStr = formatDate(selectedDate);
+    if (isToday(selectedDate)) {
+        showToast('✅ 已选择今天', 'success');
+    } else {
+        showToast(`📅 已选择 ${dateStr}，可为该日补充记录`, 'success');
+    }
 }
 
 // ==================== 跳转聊天页 ====================
@@ -513,7 +545,7 @@ window.selectTime = function(btn, time) {
 window.confirmRecord = function() {
     if (!selectedTime) selectedTime = '默认';
     showToast(`✅ 已记录：${getValueLabel(currentRecordType, currentRecordValue)} (${selectedTime})`, 'success');
-    recordCheckIn(); // 记录打卡
+    recordCheckIn();
     closeBottomSheet();
 }
 
@@ -626,4 +658,5 @@ window.saveStatValue = saveStatValue;
 window.openDateSelector = openDateSelector;
 window.changeMonth = changeMonth;
 window.selectDate = selectDate;
-window.selectCurrentDate = selectCurrentDate;
+window.confirmDateSelection = confirmDateSelection;
+window.backToToday = backToToday;

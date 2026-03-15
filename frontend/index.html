@@ -21,14 +21,17 @@
                     <div class="ai-header-content">
                         <div class="ai-greeting-wrapper">
                             <p class="ai-greeting" id="ai-greeting">晚上好！</p>
-                            <p class="ai-date" id="ai-date" onclick="openDateSelector()">2026-3-15 周日</p>
+                            <div class="ai-date-wrapper">
+                                <p class="ai-date" id="ai-date" onclick="openDateSelector()">2026-3-15 周日</p>
+                                <button class="btn-back-today" id="btn-back-today" onclick="backToToday()" title="返回今天">📅</button>
+                            </div>
                         </div>
                         <p class="ai-streak" id="ai-streak">已坚持记录 0 天</p>
                     </div>
                 </div>
                 <div class="ai-message" onclick="goToChatWithPlan()">
                     <div class="ai-message-bubble">
-                        <p class="ai-suggestion" id="ai-suggestion">最近状态不错哦！继续保持运动和健康饮食的好习惯～</p>
+                        <p class="ai-suggestion" id="ai-suggestion">最近您有部分可支配时间，可以尝试利用一点固定时间做运动哦～喝水健康饮食的习惯也不要忘了哦！</p>
                     </div>
                     <div class="ai-message-arrow">›</div>
                 </div>
@@ -229,7 +232,7 @@
                         不是帮你短期减肥，而是帮你在高压工作与有限时间里，<br>
                         维持一种可持续的健康生活方式。
                     </p>
-                    <p class="version">v3.0 日期选择 + 打卡统计</p>
+                    <p class="version">v3.1 日期选择优化</p>
                 </div>
             </div>
         </section>
