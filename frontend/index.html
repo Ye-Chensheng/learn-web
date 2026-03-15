@@ -7,39 +7,114 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>vibe-healing | 健康陪伴</title>
     <link rel="stylesheet" href="/css/main.css">
-    <!-- Chart.js for data visualization -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <!-- 顶部导航 -->
-    <header class="header">
-        <div class="header-content">
-            <h1 class="logo">🦞 vibe-healing</h1>
-            <p class="subtitle">你的健康陪伴搭子</p>
-        </div>
-    </header>
-
     <!-- 主容器 -->
     <main class="container">
         <!-- 首页 -->
         <section id="page-home" class="page active">
-            <!-- 今日状态卡片 -->
-            <div class="card status-card">
-                <div class="card-header">
-                    <span class="mode-badge" id="today-mode">稳态模式</span>
-                    <span class="date" id="today-date">--</span>
+            
+            <!-- 1. 顶部 AI 动态关怀卡片 -->
+            <div class="ai-insight-card">
+                <div class="ai-avatar">🌱</div>
+                <div class="ai-content">
+                    <p class="ai-greeting" id="ai-greeting">今天辛苦啦！</p>
+                    <p class="ai-suggestion" id="ai-suggestion">最近您的工作/学习/事情较忙，可支配时间少，可以试试多喝一杯水，饭后多走两步路，少吃一口晚餐，从良好健康小习惯做起。</p>
                 </div>
-                <div class="card-body">
-                    <p class="status-text" id="status-text">今天有什么健康小目标吗？</p>
-                    <div class="continuous-days">
-                        <span class="fire">🔥</span>
-                        <span>连续 <strong id="continuous-days">0</strong> 天</span>
+            </div>
+
+            <!-- 2. 基础健康信息栏 -->
+            <div class="basic-stats-row">
+                <div class="stat-mini">
+                    <span class="stat-mini-icon">👤</span>
+                    <span class="stat-mini-value" id="stat-gender">--</span>
+                </div>
+                <div class="stat-mini">
+                    <span class="stat-mini-icon">📏</span>
+                    <span class="stat-mini-value" id="stat-height">--</span>
+                </div>
+                <div class="stat-mini">
+                    <span class="stat-mini-icon">⚖️</span>
+                    <span class="stat-mini-value" id="stat-weight">--</span>
+                </div>
+                <div class="stat-mini">
+                    <span class="stat-mini-icon">💚</span>
+                    <span class="stat-mini-value" id="stat-health-index">--</span>
+                </div>
+            </div>
+
+            <!-- 3. 快捷动作面板 -->
+            <div class="quick-actions-board">
+                <div class="actions-header">
+                    <h2 class="actions-title">记录您的每一次健康的努力！</h2>
+                    <p class="actions-subtitle">
+                        <span class="wechat-icon">💬</span>
+                        使用聊天智能记录健康努力
+                    </p>
+                </div>
+
+                <!-- 喝水 -->
+                <div class="action-category water-category">
+                    <div class="category-header">
+                        <span class="category-icon">💧</span>
+                        <span class="category-name">喝水</span>
+                    </div>
+                    <div class="category-options">
+                        <button class="pill-btn" onclick="quickRecord('water', '300ml')">300ml</button>
+                        <button class="pill-btn" onclick="quickRecord('water', '500ml')">500ml</button>
+                        <button class="pill-btn" onclick="quickRecord('water', '1L')">1L</button>
+                        <button class="pill-btn" onclick="quickRecord('water', '2L')">2L</button>
+                    </div>
+                </div>
+
+                <!-- 吃饭 -->
+                <div class="action-category food-category">
+                    <div class="category-header">
+                        <span class="category-icon">🥗</span>
+                        <span class="category-name">吃饭</span>
+                    </div>
+                    <div class="category-options">
+                        <button class="pill-btn" onclick="quickRecord('food', '减脂餐')">减脂餐</button>
+                        <button class="pill-btn" onclick="quickRecord('food', '健康平衡')">健康平衡</button>
+                        <button class="pill-btn" onclick="quickRecord('food', '小不节制')">小不节制</button>
+                        <button class="pill-btn" onclick="quickRecord('food', '吃太多啦')">吃太多啦</button>
+                    </div>
+                </div>
+
+                <!-- 睡眠 -->
+                <div class="action-category sleep-category">
+                    <div class="category-header">
+                        <span class="category-icon">🌙</span>
+                        <span class="category-name">睡眠</span>
+                    </div>
+                    <div class="category-options">
+                        <button class="pill-btn" onclick="quickRecord('sleep', '<6h')">小于 6h</button>
+                        <button class="pill-btn" onclick="quickRecord('sleep', '6-7h')">6h～7h</button>
+                        <button class="pill-btn" onclick="quickRecord('sleep', '7-8h')">7h～8h</button>
+                        <button class="pill-btn" onclick="quickRecord('sleep', '>8h')">大于 8h</button>
+                    </div>
+                </div>
+
+                <!-- 运动 -->
+                <div class="action-category exercise-category">
+                    <div class="category-header">
+                        <span class="category-icon">🏃</span>
+                        <span class="category-name">运动</span>
+                    </div>
+                    <div class="category-options">
+                        <button class="pill-btn" onclick="quickRecord('exercise', '<30min')">小于 30min</button>
+                        <button class="pill-btn" onclick="quickRecord('exercise', '30-60min')">30min～1h</button>
+                        <button class="pill-btn" onclick="quickRecord('exercise', '1-2h')">1h～2h</button>
+                        <button class="pill-btn" onclick="quickRecord('exercise', '>2h')">大于 2h</button>
                     </div>
                 </div>
             </div>
 
-            <!-- 数据概览卡片 -->
-            <div class="card stats-card">
+        </section>
+
+        <!-- 统计页 -->
+        <section id="page-stats" class="page">
+            <div class="card">
                 <div class="card-header">
                     <h2>本周数据</h2>
                 </div>
@@ -66,109 +141,6 @@
                             <span class="stat-label">平均心情</span>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- 图表卡片 -->
-            <div class="card chart-card">
-                <div class="card-header">
-                    <h2>趋势图表</h2>
-                </div>
-                <div class="card-body">
-                    <canvas id="trendChart" height="200"></canvas>
-                </div>
-            </div>
-
-            <!-- 今日建议 -->
-            <div class="card suggestions-card">
-                <div class="card-header">
-                    <h2>今日建议</h2>
-                </div>
-                <div class="card-body" id="suggestions-list">
-                    <!-- 动态加载 -->
-                </div>
-            </div>
-
-            <!-- 快捷记录 -->
-            <div class="card quick-actions">
-                <div class="card-header">
-                    <h2>快捷记录</h2>
-                </div>
-                <div class="card-body">
-                    <div class="action-grid">
-                        <button class="action-btn" onclick="quickRecord('water')">
-                            <span class="icon">💧</span>
-                            <span>喝水</span>
-                        </button>
-                        <button class="action-btn" onclick="quickRecord('food')">
-                            <span class="icon">🍽️</span>
-                            <span>饮食</span>
-                        </button>
-                        <button class="action-btn" onclick="quickRecord('exercise')">
-                            <span class="icon">🏃</span>
-                            <span>运动</span>
-                        </button>
-                        <button class="action-btn" onclick="quickRecord('sleep')">
-                            <span class="icon">😴</span>
-                            <span>睡眠</span>
-                        </button>
-                        <button class="action-btn" onclick="quickRecord('weight')">
-                            <span class="icon">⚖️</span>
-                            <span>体重</span>
-                        </button>
-                        <button class="action-btn" onclick="quickRecord('mood')">
-                            <span class="icon">😊</span>
-                            <span>心情</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 记录页 -->
-        <section id="page-logs" class="page">
-            <div class="card">
-                <div class="card-header">
-                    <h2>健康记录</h2>
-                </div>
-                <div class="card-body">
-                    <form id="log-form" class="log-form">
-                        <div class="form-group">
-                            <label>工作强度</label>
-                            <select id="work-load" class="form-control">
-                                <option value="light">轻松</option>
-                                <option value="normal" selected>正常</option>
-                                <option value="heavy">繁忙/加班</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>精力水平 (1-10)</label>
-                            <input type="range" id="energy-level" min="1" max="10" value="5" class="form-control">
-                            <div class="range-value" id="energy-value">5</div>
-                        </div>
-                        <div class="form-group">
-                            <label>心情状态 (1-10)</label>
-                            <input type="range" id="mood-level" min="1" max="10" value="7" class="form-control">
-                            <div class="range-value" id="mood-value">7</div>
-                        </div>
-                        <div class="form-group">
-                            <label>睡眠时长 (小时)</label>
-                            <input type="number" id="sleep-hours" step="0.5" placeholder="例如：7.5" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label>喝水杯数</label>
-                            <input type="number" id="water-cups" placeholder="例如：6" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label>步数</label>
-                            <input type="number" id="steps" placeholder="例如：8000" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label>今日备注</label>
-                            <textarea id="special-note" placeholder="今天有什么特别的事吗？" class="form-control" rows="3"></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-block">保存记录</button>
-                    </form>
                 </div>
             </div>
         </section>
@@ -233,7 +205,7 @@
                         不是帮你短期减肥，而是帮你在高压工作与有限时间里，<br>
                         维持一种可持续的健康生活方式。
                     </p>
-                    <p class="version">MVP v1.0</p>
+                    <p class="version">v2.7 全新 UI</p>
                 </div>
             </div>
         </section>
@@ -245,9 +217,9 @@
             <span class="tab-icon">🏠</span>
             <span class="tab-label">首页</span>
         </button>
-        <button class="tab-btn" onclick="switchTab('logs')">
-            <span class="tab-icon">📝</span>
-            <span class="tab-label">记录</span>
+        <button class="tab-btn" onclick="switchTab('stats')">
+            <span class="tab-icon">📊</span>
+            <span class="tab-label">统计</span>
         </button>
         <button class="tab-btn" onclick="switchTab('chat')">
             <span class="tab-icon">💬</span>
@@ -262,12 +234,13 @@
     <!-- Toast 容器 -->
     <div id="toast-container" class="toast-container"></div>
 
-    <!-- 弹窗 -->
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <h3 id="modal-title">标题</h3>
-            <div id="modal-body"></div>
-            <button class="btn btn-primary" onclick="closeModal()">关闭</button>
+    <!-- 底部弹窗 (Bottom Sheet) -->
+    <div id="bottom-sheet" class="bottom-sheet">
+        <div class="bottom-sheet-overlay" onclick="closeBottomSheet()"></div>
+        <div class="bottom-sheet-content">
+            <div class="bottom-sheet-handle"></div>
+            <h3 id="sheet-title" class="sheet-title">标题</h3>
+            <div id="sheet-body" class="sheet-body"></div>
         </div>
     </div>
 

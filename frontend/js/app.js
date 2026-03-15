@@ -1,5 +1,5 @@
 /**
- * vibe-healing 前端应用
+ * vibe-healing 前端应用 - v2.7 全新设计
  * 健康陪伴系统 H5 客户端
  */
 
@@ -10,6 +10,10 @@ const API_BASE = window.location.origin + '/api';
 let currentUserId = 1;
 let currentUser = null;
 
+// 临时存储
+let currentRecordType = null;
+let currentRecordValue = null;
+
 // ==================== 初始化 ====================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -18,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initApp() {
-    console.log('🦞 vibe-healing 启动中...');
+    console.log('🦞 vibe-healing v2.7 启动中...');
     
     // 初始化用户
     await initUser();
@@ -26,35 +30,10 @@ async function initApp() {
     // 加载首页数据
     await loadHomeData();
     
-    // 加载今日日志
-    await loadTodayLog();
-    
     console.log('✅ 应用初始化完成');
 }
 
 function setupEventListeners() {
-    // 范围输入显示值
-    const energySlider = document.getElementById('energy-level');
-    const moodSlider = document.getElementById('mood-level');
-    
-    if (energySlider) {
-        energySlider.addEventListener('input', (e) => {
-            document.getElementById('energy-value').textContent = e.target.value;
-        });
-    }
-    
-    if (moodSlider) {
-        moodSlider.addEventListener('input', (e) => {
-            document.getElementById('mood-value').textContent = e.target.value;
-        });
-    }
-    
-    // 表单提交
-    const logForm = document.getElementById('log-form');
-    if (logForm) {
-        logForm.addEventListener('submit', handleLogSubmit);
-    }
-    
     // 聊天输入回车发送
     const chatInput = document.getElementById('chat-input');
     if (chatInput) {
@@ -84,6 +63,7 @@ async function initUser() {
             currentUser = result.data;
             currentUserId = result.data.id;
             updateUserProfile();
+            updateBasicStats();
         }
     } catch (error) {
         console.error('初始化用户失败:', error);
@@ -99,9 +79,26 @@ function updateUserProfile() {
     document.getElementById('user-weight').textContent = currentUser.weight_kg ? `${currentUser.weight_kg} kg` : '--';
 }
 
-// ==================== 首页数据 ====================
+function updateBasicStats() {
+    if (!currentUser) return;
+    
+    // 性别
+    document.getElementById('stat-gender').textContent = currentUser.gender || '--';
+    
+    // 身高
+    document.getElementById('stat-height').textContent = currentUser.height_cm ? `${currentUser.height_cm}cm` : '--';
+    
+    // 体重
+    document.getElementById('stat-weight').textContent = currentUser.weight_kg ? `${currentUser.weight_kg}kg` : '--';
+    
+    // 健康指数 (简化计算)
+    const bmi = currentUser.height_cm && currentUser.weight_kg 
+        ? (currentUser.weight_kg / ((currentUser.height_cm / 100) ** 2)).toFixed(1)
+        : '--';
+    document.getElementById('stat-health-index').textContent = bmi !== '--' ? `BMI ${bmi}` : '--';
+}
 
-let trendChartInstance = null;
+// ==================== 首页数据 ====================
 
 async function loadHomeData() {
     try {
@@ -109,29 +106,71 @@ async function loadHomeData() {
         const result = await res.json();
         
         if (result.success) {
-            renderHomeData(result.data);
+            renderAIInsight(result.data);
         }
-        
-        // 加载周报数据用于图表
-        await loadWeeklyReport();
     } catch (error) {
         console.error('加载首页数据失败:', error);
+        // 显示默认问候
+        renderDefaultAIInsight();
     }
 }
 
-async function loadWeeklyReport() {
+function renderAIInsight(data) {
+    const hour = new Date().getHours();
+    const greetingEl = document.getElementById('ai-greeting');
+    const suggestionEl = document.getElementById('ai-suggestion');
+    
+    // 根据时间段设置问候
+    let greeting = '你好呀！';
+    if (hour >= 5 && hour < 12) {
+        greeting = '早上好！';
+    } else if (hour >= 12 && hour < 18) {
+        greeting = '下午好！';
+    } else if (hour >= 18 && hour < 23) {
+        greeting = '晚上好！';
+    } else {
+        greeting = '夜深啦！';
+    }
+    
+    // 基于用户状态的建议（MVP 简化版）
+    const suggestions = [
+        '最近您的工作/学习/事情较忙，可支配时间少，可以试试多喝一杯水，饭后多走两步路，少吃一口晚餐，从良好健康小习惯做起。',
+        '最近您有部分可支配时间，可以尝试利用一点固定时间做运动哦～喝水健康饮食的习惯也不要忘了哦！',
+        '最近您晚上有空余的时间，可以尝试夜跑，或家附近的健身房/公园多锻炼一下哦！'
+    ];
+    
+    const randomSuggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
+    
+    if (greetingEl) greetingEl.textContent = greeting;
+    if (suggestionEl) suggestionEl.textContent = randomSuggestion;
+}
+
+function renderDefaultAIInsight() {
+    const hour = new Date().getHours();
+    const greetingEl = document.getElementById('ai-greeting');
+    const suggestionEl = document.getElementById('ai-suggestion');
+    
+    let greeting = '今天辛苦啦！';
+    if (hour >= 5 && hour < 12) greeting = '早上好！';
+    else if (hour >= 12 && hour < 18) greeting = '下午好！';
+    else if (hour >= 18 && hour < 23) greeting = '晚上好！';
+    
+    if (greetingEl) greetingEl.textContent = greeting;
+    if (suggestionEl) suggestionEl.textContent = '记录您的健康点滴，让 AI 助手更懂你～';
+}
+
+// ==================== 统计页数据 ====================
+
+async function loadStatsData() {
     try {
         const res = await fetch(`${API_BASE}/report/weekly?user_id=${currentUserId}`);
         const result = await res.json();
         
         if (result.success) {
             renderStats(result.data.stats);
-            renderTrendChart(result.data.stats);
         }
     } catch (error) {
-        console.error('加载周报数据失败:', error);
-        // 显示空图表
-        renderEmptyChart();
+        console.error('加载统计数据失败:', error);
     }
 }
 
@@ -142,452 +181,80 @@ function renderStats(stats) {
     document.getElementById('avg-mood').textContent = stats.avgMood?.toFixed(1) || '--';
 }
 
-function renderTrendChart(stats) {
-    const ctx = document.getElementById('trendChart').getContext('2d');
-    
-    // 销毁旧图表
-    if (trendChartInstance) {
-        trendChartInstance.destroy();
-    }
-    
-    // 创建新图表
-    trendChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['睡眠', '喝水', '心情', '精力'],
-            datasets: [{
-                label: '本周平均',
-                data: [
-                    stats.avgSleep || 0,
-                    stats.avgWater || 0,
-                    stats.avgMood || 0,
-                    stats.avgEnergy || 0
-                ],
-                borderColor: '#10B981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                tension: 0.4,
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 10
-                }
-            }
-        }
-    });
-}
-
-function renderEmptyChart() {
-    const ctx = document.getElementById('trendChart').getContext('2d');
-    
-    if (trendChartInstance) {
-        trendChartInstance.destroy();
-    }
-    
-    trendChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['暂无数据'],
-            datasets: [{
-                label: '开始记录后显示趋势',
-                data: [0],
-                borderColor: '#E5E7EB',
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    display: false
-                },
-                x: {
-                    display: false
-                }
-            }
-        }
-    });
-}
-
-function renderHomeData(data) {
-    // 日期
-    const dateEl = document.getElementById('today-date');
-    if (dateEl) {
-        const today = new Date();
-        const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-        dateEl.textContent = `${today.getMonth() + 1}月${today.getDate()}日 ${weekDays[today.getDay()]}`;
-    }
-    
-    // 模式
-    const modeEl = document.getElementById('today-mode');
-    if (modeEl) {
-        const modeMap = {
-            'light': { text: '保底模式', class: 'mode-light' },
-            'stable': { text: '稳态模式', class: 'mode-stable' },
-            'heavy': { text: '进阶模式', class: 'mode-heavy' }
-        };
-        const mode = modeMap[data.mode] || modeMap['stable'];
-        modeEl.textContent = mode.text;
-        modeEl.className = `mode-badge ${mode.class}`;
-    }
-    
-    // 连续天数
-    const daysEl = document.getElementById('continuous-days');
-    if (daysEl) {
-        daysEl.textContent = data.continuousDays || 0;
-    }
-    
-    // 状态文本
-    const statusEl = document.getElementById('status-text');
-    if (statusEl) {
-        const hour = new Date().getHours();
-        if (hour < 12) {
-            statusEl.textContent = '早上好！今天有什么健康小目标吗？';
-        } else if (hour < 18) {
-            statusEl.textContent = '下午好！记得起来活动活动～';
-        } else {
-            statusEl.textContent = '晚上好！今天过得怎么样？';
-        }
-    }
-    
-    // 建议列表
-    renderSuggestions(data.suggestions || []);
-}
-
-function renderSuggestions(suggestions) {
-    const container = document.getElementById('suggestions-list');
-    if (!container) return;
-    
-    if (suggestions.length === 0) {
-        container.innerHTML = '<div class="empty-state">暂无建议</div>';
-        return;
-    }
-    
-    const iconMap = {
-        'water': '💧',
-        'food': '🍽️',
-        'move': '🚶',
-        'sleep': '😴',
-        'exercise': '🏃'
-    };
-    
-    container.innerHTML = suggestions.map(s => `
-        <div class="suggestion-item">
-            <span class="suggestion-icon">${iconMap[s.type] || '💡'}</span>
-            <div class="suggestion-content">
-                <div class="suggestion-text">${s.text}</div>
-                <span class="suggestion-priority ${s.priority}">${s.priority === 'high' ? '重要' : '建议'}</span>
-            </div>
-        </div>
-    `).join('');
-}
-
-async function loadTodayLog() {
-    try {
-        const res = await fetch(`${API_BASE}/logs/today?user_id=${currentUserId}`);
-        const result = await res.json();
-        
-        if (result.success && result.data) {
-            fillLogForm(result.data);
-        }
-    } catch (error) {
-        console.error('加载今日日志失败:', error);
-    }
-}
-
-function fillLogForm(log) {
-    if (!log) return;
-    
-    const fields = {
-        'work-load': log.work_load,
-        'energy-level': log.energy_level,
-        'mood-level': log.mood_level,
-        'sleep-hours': log.sleep_hours,
-        'water-cups': log.water_cups,
-        'steps': log.steps,
-        'special-note': log.special_note
-    };
-    
-    for (const [id, value] of Object.entries(fields)) {
-        const el = document.getElementById(id);
-        if (el && value !== null && value !== undefined) {
-            el.value = value;
-            // 更新范围值显示
-            if (id === 'energy-level' || id === 'mood-level') {
-                const displayEl = document.getElementById(id.replace('-level', '-value'));
-                if (displayEl) displayEl.textContent = value;
-            }
-        }
-    }
-}
-
-// ==================== 记录功能 ====================
-
-async function handleLogSubmit(e) {
-    e.preventDefault();
-    
-    const logData = {
-        work_load: document.getElementById('work-load').value,
-        energy_level: parseInt(document.getElementById('energy-level').value),
-        mood_level: parseInt(document.getElementById('mood-level').value),
-        sleep_hours: parseFloat(document.getElementById('sleep-hours').value) || null,
-        water_cups: parseInt(document.getElementById('water-cups').value) || 0,
-        steps: parseInt(document.getElementById('steps').value) || 0,
-        special_note: document.getElementById('special-note').value
-    };
-    
-    showLoading(true);
-    
-    try {
-        // 先获取今日日志 ID
-        const res = await fetch(`${API_BASE}/logs/today?user_id=${currentUserId}`);
-        const result = await res.json();
-        
-        if (result.success && result.data) {
-            const updateRes = await fetch(`${API_BASE}/logs/${result.data.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(logData)
-            });
-            
-            const updateResult = await updateRes.json();
-            if (updateResult.success) {
-                showToast('✅ 记录已保存', 'success');
-                loadHomeData(); // 刷新首页
-            } else {
-                showToast('❌ 保存失败', 'error');
-            }
-        }
-    } catch (error) {
-        console.error('保存日志失败:', error);
-        showToast('❌ 保存失败', 'error');
-    } finally {
-        showLoading(false);
-    }
-}
-
 // ==================== 快捷记录 ====================
 
-function quickRecord(type) {
-    const modals = {
-        water: {
-            title: '💧 记录喝水',
-            content: `
-                <div class="form-group">
-                    <label>喝了几杯？</label>
-                    <input type="number" id="quick-water-cups" value="1" min="1" class="form-control">
-                </div>
-            `,
-            action: async () => {
-                const cups = parseInt(document.getElementById('quick-water-cups').value) || 1;
-                await updateLog({ water_cups: cups });
-            }
-        },
-        food: {
-            title: '🍽️ 记录饮食',
-            content: `
-                <div class="form-group">
-                    <label>餐次</label>
-                    <select id="quick-meal-type" class="form-control">
-                        <option value="breakfast">早餐</option>
-                        <option value="lunch">午餐</option>
-                        <option value="dinner">晚餐</option>
-                        <option value="snack">加餐</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>吃了什么</label>
-                    <input type="text" id="quick-food-name" placeholder="例如：沙拉 + 鸡胸肉" class="form-control">
-                </div>
-            `,
-            action: async () => {
-                const mealType = document.getElementById('quick-meal-type').value;
-                const foodName = document.getElementById('quick-food-name').value;
-                if (foodName) {
-                    await addFoodRecord({ meal_type: mealType, food_name: foodName });
-                }
-            }
-        },
-        exercise: {
-            title: '🏃 记录运动',
-            content: `
-                <div class="form-group">
-                    <label>运动类型</label>
-                    <select id="quick-exercise-type" class="form-control">
-                        <option value="walking">散步</option>
-                        <option value="running">跑步</option>
-                        <option value="home">居家训练</option>
-                        <option value="gym">健身房</option>
-                        <option value="other">其他</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>时长 (分钟)</label>
-                    <input type="number" id="quick-exercise-duration" value="20" min="1" class="form-control">
-                </div>
-            `,
-            action: async () => {
-                const type = document.getElementById('quick-exercise-type').value;
-                const duration = parseInt(document.getElementById('quick-exercise-duration').value) || 0;
-                await updateLog({ exercise_type: type, exercise_duration: duration });
-            }
-        },
-        sleep: {
-            title: '😴 记录睡眠',
-            content: `
-                <div class="form-group">
-                    <label>昨晚睡了多久 (小时)</label>
-                    <input type="number" id="quick-sleep-hours" step="0.5" placeholder="例如：7.5" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label>睡眠质量 (1-10)</label>
-                    <input type="range" id="quick-sleep-quality" min="1" max="10" value="7" class="form-control">
-                    <div style="text-align: center; margin-top: 8px;" id="quick-sleep-quality-value">7</div>
-                </div>
-            `,
-            action: async () => {
-                const hours = parseFloat(document.getElementById('quick-sleep-hours').value) || 0;
-                const quality = parseInt(document.getElementById('quick-sleep-quality').value) || 5;
-                await updateLog({ sleep_hours: hours, sleep_quality: quality });
-            }
-        },
-        weight: {
-            title: '⚖️ 记录体重',
-            content: `
-                <div class="form-group">
-                    <label>体重 (kg)</label>
-                    <input type="number" id="quick-weight" step="0.1" placeholder="例如：65.5" class="form-control">
-                </div>
-            `,
-            action: async () => {
-                const weight = parseFloat(document.getElementById('quick-weight').value) || 0;
-                if (weight > 0) {
-                    await updateUser({ weight_kg: weight });
-                }
-            }
-        },
-        mood: {
-            title: '😊 记录心情',
-            content: `
-                <div class="form-group">
-                    <label>今天心情如何 (1-10)</label>
-                    <input type="range" id="quick-mood-level" min="1" max="10" value="7" class="form-control">
-                    <div style="text-align: center; margin-top: 8px; font-size: 24px;" id="quick-mood-value">7</div>
-                </div>
-                <div class="form-group">
-                    <label>精力水平 (1-10)</label>
-                    <input type="range" id="quick-energy-level" min="1" max="10" value="7" class="form-control">
-                    <div style="text-align: center; margin-top: 8px; font-size: 24px;" id="quick-energy-value">7</div>
-                </div>
-            `,
-            action: async () => {
-                const mood = parseInt(document.getElementById('quick-mood-level').value) || 5;
-                const energy = parseInt(document.getElementById('quick-energy-level').value) || 5;
-                await updateLog({ mood_level: mood, energy_level: energy });
-            }
-        }
+function quickRecord(type, value) {
+    currentRecordType = type;
+    currentRecordValue = value;
+    
+    const timeOptions = {
+        water: ['早晨', '上午', '下午', '晚上'],
+        food: ['早餐', '午餐', '晚餐', '加餐'],
+        sleep: ['昨晚', '今晚'],
+        exercise: ['早晨', '上午', '下午', '晚上']
     };
     
-    const modal = modals[type];
-    if (modal) {
-        showModal(modal.title, modal.content, modal.action);
+    const times = timeOptions[type] || ['默认'];
+    
+    const content = `
+        <div class="form-group">
+            <label>已选择：${getValueLabel(type, value)}</label>
+        </div>
+        <div class="form-group">
+            <label>请选择时间</label>
+            <div class="time-options">
+                ${times.map((t, i) => `
+                    <button class="time-btn ${i === 0 ? 'selected' : ''}" onclick="selectTime(this, '${t}')">${t}</button>
+                `).join('')}
+            </div>
+        </div>
+        <button class="btn btn-primary btn-block" onclick="confirmRecord()">确认记录</button>
+    `;
+    
+    openBottomSheet('记录健康努力', content);
+}
+
+function getValueLabel(type, value) {
+    const labels = {
+        water: `💧 ${value}`,
+        food: `🥗 ${value}`,
+        sleep: `🌙 ${value}`,
+        exercise: `🏃 ${value}`
+    };
+    return labels[type] || value;
+}
+
+let selectedTime = null;
+
+window.selectTime = function(btn, time) {
+    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedTime = time;
+}
+
+window.confirmRecord = async function() {
+    if (!selectedTime) {
+        selectedTime = '默认';
     }
     
-    // 为范围输入添加事件监听
-    setTimeout(() => {
-        const sleepQuality = document.getElementById('quick-sleep-quality');
-        if (sleepQuality) {
-            sleepQuality.addEventListener('input', (e) => {
-                document.getElementById('quick-sleep-quality-value').textContent = e.target.value;
-            });
-        }
-        
-        const moodLevel = document.getElementById('quick-mood-level');
-        if (moodLevel) {
-            moodLevel.addEventListener('input', (e) => {
-                document.getElementById('quick-mood-value').textContent = e.target.value;
-            });
-        }
-        
-        const energyLevel = document.getElementById('quick-energy-level');
-        if (energyLevel) {
-            energyLevel.addEventListener('input', (e) => {
-                document.getElementById('quick-energy-value').textContent = e.target.value;
-            });
-        }
-    }, 100);
-}
-
-async function updateLog(data) {
-    showLoading(true);
+    showToast(`✅ 已记录：${getValueLabel(currentRecordType, currentRecordValue)} (${selectedTime})`, 'success');
+    closeBottomSheet();
     
-    try {
-        const res = await fetch(`${API_BASE}/logs/today?user_id=${currentUserId}`);
-        const result = await res.json();
-        
-        if (result.success && result.data) {
-            const updateRes = await fetch(`${API_BASE}/logs/${result.data.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            
-            const updateResult = await updateRes.json();
-            if (updateResult.success) {
-                showToast('✅ 已记录', 'success');
-                closeModal();
-                loadHomeData();
-            } else {
-                showToast('❌ 记录失败', 'error');
-            }
-        }
-    } catch (error) {
-        console.error('更新日志失败:', error);
-        showToast('❌ 记录失败', 'error');
-    } finally {
-        showLoading(false);
-    }
+    // 这里可以调用 API 保存数据
+    // await saveRecord(currentRecordType, currentRecordValue, selectedTime);
 }
 
-async function addFoodRecord(data) {
-    try {
-        const res = await fetch(`${API_BASE}/food`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...data, user_id: currentUserId })
-        });
-        
-        const result = await res.json();
-        if (result.success) {
-            showToast('✅ 饮食已记录');
-            closeModal();
-        }
-    } catch (error) {
-        console.error('添加饮食记录失败:', error);
-        showToast('❌ 记录失败');
-    }
+// ==================== 底部弹窗 ====================
+
+function openBottomSheet(title, content) {
+    document.getElementById('sheet-title').textContent = title;
+    document.getElementById('sheet-body').innerHTML = content;
+    document.getElementById('bottom-sheet').classList.add('show');
+    selectedTime = null;
 }
 
-async function updateUser(data) {
-    // MVP 简化版本，实际应该调用用户更新 API
-    showToast('✅ 已更新');
-    closeModal();
+window.closeBottomSheet = function() {
+    document.getElementById('bottom-sheet').classList.remove('show');
 }
 
 // ==================== 聊天功能 ====================
@@ -639,7 +306,7 @@ function addChatMessage(text, type) {
 
 // ==================== 页面切换 ====================
 
-function switchTab(tabName) {
+window.switchTab = function(tabName) {
     // 隐藏所有页面
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
@@ -664,49 +331,13 @@ function switchTab(tabName) {
     // 加载对应页面数据
     if (tabName === 'home') {
         loadHomeData();
-    } else if (tabName === 'logs') {
-        loadTodayLog();
+    } else if (tabName === 'stats') {
+        loadStatsData();
     } else if (tabName === 'profile') {
         updateUserProfile();
+        updateBasicStats();
     }
 }
-
-// ==================== 弹窗 ====================
-
-let modalCallback = null;
-
-function showModal(title, content, callback) {
-    const modal = document.getElementById('modal');
-    const titleEl = document.getElementById('modal-title');
-    const bodyEl = document.getElementById('modal-body');
-    
-    if (titleEl) titleEl.textContent = title;
-    if (bodyEl) bodyEl.innerHTML = content;
-    
-    modalCallback = callback;
-    modal.classList.add('show');
-}
-
-function closeModal() {
-    const modal = document.getElementById('modal');
-    modal.classList.remove('show');
-    modalCallback = null;
-}
-
-// 处理弹窗确认
-document.getElementById('modal')?.addEventListener('click', (e) => {
-    if (e.target.id === 'modal') {
-        closeModal();
-    }
-});
-
-// 弹窗确认按钮
-document.querySelector('#modal .btn')?.addEventListener('click', () => {
-    if (modalCallback) {
-        modalCallback();
-    }
-    closeModal();
-});
 
 // ==================== 工具函数 ====================
 
@@ -727,20 +358,6 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-function showLoading(show = true) {
-    let overlay = document.getElementById('loading-overlay');
-    
-    if (show && !overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'loading-overlay';
-        overlay.className = 'loading-overlay';
-        overlay.innerHTML = '<div class="loading-spinner"></div>';
-        document.body.appendChild(overlay);
-    } else if (!show && overlay) {
-        overlay.remove();
-    }
-}
-
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
@@ -752,4 +369,4 @@ function escapeHtml(text) {
 window.quickRecord = quickRecord;
 window.sendMessage = sendMessage;
 window.switchTab = switchTab;
-window.closeModal = closeModal;
+window.closeBottomSheet = closeBottomSheet;
