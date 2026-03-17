@@ -733,10 +733,14 @@ let statsChart = null;
 let currentStatsDays = 7;
 let currentChartType = 'index';
 
+// 添加调试日志
+console.log('📊 统计模块加载，当前用户 ID:', currentUserId);
+
 window.setStatsRange = function(days) {
     currentStatsDays = days;
     document.querySelectorAll('#stats-btn-7, #stats-btn-14, #stats-btn-30').forEach(btn => btn.classList.remove('active'));
     document.getElementById(`stats-btn-${days}`).classList.add('active');
+    console.log('📊 切换时间范围:', days, '天，用户 ID:', currentUserId);
     loadStatsData();
 };
 
@@ -751,8 +755,10 @@ window.switchStatsChart = function(type) {
 
 async function loadStatsData() {
     try {
+        console.log('📊 加载统计数据，用户 ID:', currentUserId, '天数:', currentStatsDays);
         const res = await fetch(`${API_BASE}/stats?user_id=${currentUserId}&days=${currentStatsDays}`);
         const result = await res.json();
+        console.log('📊 API 返回结果:', result);
         
         if (result.success && result.data) {
             window.statsTrendData = result.data.trend;
@@ -761,6 +767,7 @@ async function loadStatsData() {
             document.getElementById('stats-avg-sleep').textContent = result.data.avgSleep?.toFixed(1) || '--';
             document.getElementById('stats-avg-water').textContent = result.data.avgWater?.toFixed(0) || '--';
             document.getElementById('stats-exercise-days').textContent = result.data.exerciseDays || '--';
+            console.log('📊 更新显示：健康指数', result.data.avgHealthIndex, '喝水', result.data.avgWater, '运动天数', result.data.exerciseDays);
             renderStatsChart(result.data.trend);
         }
     } catch (error) {
