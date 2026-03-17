@@ -1,18 +1,25 @@
 /**
- * vibe-healing 前端应用 - v3.2 用户 ID 支持
+ * vibe-healing 前端应用 - v3.3 用户 ID 体系修复
  */
 
 const API_BASE = window.location.origin + '/api';
 
-// 从 localStorage 读取用户 ID，如果没有则跳转到选择页面
-let currentUserId = parseInt(localStorage.getItem('vibe_user_id')) || 1;
+// 从 localStorage 读取用户 ID，支持 URL 参数覆盖
+const urlParams = new URLSearchParams(window.location.search);
+let currentUserId = parseInt(urlParams.get('user_id')) || parseInt(localStorage.getItem('vibe_user_id')) || 1;
+
+// 如果通过 URL 参数指定了用户 ID，保存到 localStorage
+if (urlParams.get('user_id')) {
+    localStorage.setItem('vibe_user_id', urlParams.get('user_id'));
+}
+
 let currentUser = null;
 let currentRecordType = null;
 let currentRecordValue = null;
 let selectedTime = null;
 
 // 检查用户 ID，如果没有则跳转到选择页面
-if (!localStorage.getItem('vibe_user_id')) {
+if (!localStorage.getItem('vibe_user_id') && !urlParams.get('user_id')) {
     // 不在选择页面时才跳转
     if (!window.location.pathname.includes('select-user.html')) {
         window.location.href = '/select-user.html';
@@ -176,35 +183,44 @@ function formatDateSimple(date) {
 
 async function initUser() {
     try {
-        const res = await fetch(`${API_BASE}/user/init`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                wx_openid: 'demo_user_001',
-                nickname: '小伙伴',
-                gender: '女',
-                height_cm: 168,
-                weight_kg: 55,
-                goal: '减脂'
-            })
-        });
-        
+        // 先尝试获取现有用户信息
+        const res = await fetch(`${API_BASE}/user/${currentUserId}`);
         const result = await res.json();
-        if (result.success) {
+        
+        if (result.success && result.data) {
             currentUser = result.data;
-            currentUserId = result.data.id;
-            updateUserProfile();
-            updateBasicStats();
+        } else {
+            // 如果用户不存在，创建默认用户
+            const initRes = await fetch(`${API_BASE}/user/init`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    wx_openid: `user_${currentUserId}`,
+                    nickname: `用户${currentUserId}`,
+                    gender: '女',
+                    height_cm: 168,
+                    weight_kg: 55,
+                    health_goal: '减脂'
+                })
+            });
+            const initData = await initRes.json();
+            if (initData.success) {
+                currentUser = initData.data;
+            }
         }
+        
+        updateUserProfile();
+        updateBasicStats();
     } catch (error) {
         console.error('初始化用户失败:', error);
+        // 使用默认值
         currentUser = {
-            id: 1,
-            nickname: '小伙伴',
+            id: currentUserId,
+            nickname: `用户${currentUserId}`,
             gender: '女',
             height_cm: 168,
             weight_kg: 55,
-            goal: '减脂'
+            health_goal: '减脂'
         };
         updateUserProfile();
         updateBasicStats();
