@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>统计 - vibe-healing</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #10b981;
+            --primary-light: #34d399;
+            --primary-dark: #059669;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-primary);
+            padding-bottom: 80px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 20px 0;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        
+        /* 时间选择器 */
+        .time-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+        
+        .time-btn {
+            flex: 1;
+            min-width: 60px;
+            padding: 8px 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .time-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        /* 概览卡片 */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .overview-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .overview-card.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .overview-card h3 {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .overview-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .overview-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        
+        .overview-trend {
+            font-size: 12px;
+            margin-top: 8px;
+        }
+        
+        .trend-up {
+            color: var(--primary-color);
+        }
+        
+        .trend-down {
+            color: #ef4444;
+        }
+        
+        /* 图表卡片 */
+        .chart-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .chart-tabs {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .chart-tab {
+            padding: 4px 12px;
+            background: var(--bg-color);
+            border: none;
+            border-radius: 16px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        
+        .chart-tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 250px;
+        }
+        
+        /* 详细数据列表 */
+        .detail-list {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        .detail-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .detail-icon {
+            margin-right: 8px;
+        }
+        
+        /* 加载状态 */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+        
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+        
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        /* 健康指数进度条 */
+        .index-progress {
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        
+        .index-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+            transition: width 0.3s;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 600px) {
+            .overview-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 健康统计</h1>
+            <p>查看你的健康数据趋势和成就</p>
+        </div>
+        
+        <!-- 时间选择器 -->
+        <div class="time-selector">
+            <button class="time-btn active" onclick="setTimeRange(7)">7 天</button>
+            <button class="time-btn" onclick="setTimeRange(14)">14 天</button>
+            <button class="time-btn" onclick="setTimeRange(30)">30 天</button>
+            <button class="time-btn" onclick="setTimeRange(90)">90 天</button>
+        </div>
+        
+        <!-- 概览卡片 -->
+        <div class="overview-grid" id="overview-grid">
+            <div class="overview-card">
+                <h3>平均健康指数</h3>
+                <div class="overview-value" id="avg-health-index">--</div>
+                <div class="overview-label">分</div>
+                <div class="index-progress">
+                    <div class="index-progress-bar" id="health-index-bar" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <div class="overview-card">
+                <h3>平均睡眠</h3>
+                <div class="overview-value" id="avg-sleep">--</div>
+                <div class="overview-label">小时/天</div>
+            </div>
+            
+            <div class="overview-card">
+                <h3>平均喝水</h3>
+                <div class="overview-value" id="avg-water">--</div>
+                <div class="overview-label">毫升/天</div>
+            </div>
+            
+            <div class="overview-card">
+                <h3>运动天数</h3>
+                <div class="overview-value" id="exercise-days">--</div>
+                <div class="overview-label">天</div>
+            </div>
+            
+            <div class="overview-card full-width">
+                <h3>记录天数</h3>
+                <div class="overview-value" id="total-days">--</div>
+                <div class="overview-label">最近 <span id="range-days">7</span> 天内</div>
+            </div>
+        </div>
+        
+        <!-- 健康指数趋势图 -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <div class="chart-title">健康指数趋势</div>
+                <div class="chart-tabs">
+                    <button class="chart-tab active" onclick="switchChart('index')">综合</button>
+                    <button class="chart-tab" onclick="switchChart('water')">喝水</button>
+                    <button class="chart-tab" onclick="switchChart('sleep')">睡眠</button>
+                    <button class="chart-tab" onclick="switchChart('exercise')">运动</button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="health-chart"></canvas>
+            </div>
+        </div>
+        
+        <!-- 四项动作详细数据 -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <div class="chart-title">📈 详细数据</div>
+            </div>
+            <div class="detail-list" id="detail-list">
+                <!-- 动态生成 -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = window.location.origin + '/api';
+        let currentUserId = 1;
+        let currentDays = 7;
+        let healthChart = null;
+        let currentChartType = 'index';
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadStatsData();
+        });
+        
+        // 设置时间范围
+        window.setTimeRange = function(days) {
+            currentDays = days;
+            document.querySelectorAll('.time-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.includes(days.toString())) {
+                    btn.classList.add('active');
+                }
+            });
+            document.getElementById('range-days').textContent = days;
+            loadStatsData();
+        };
+        
+        // 切换图表类型
+        window.switchChart = function(type) {
+            currentChartType = type;
+            document.querySelectorAll('.chart-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            renderChart();
+        };
+        
+        // 加载统计数据
+        async function loadStatsData() {
+            try {
+                const res = await fetch(`${API_BASE}/stats?user_id=${currentUserId}&days=${currentDays}`);
+                const result = await res.json();
+                
+                if (result.success && result.data) {
+                    renderOverview(result.data);
+                    renderChart(result.data.trend);
+                    renderDetailList(result.data);
+                } else {
+                    showEmptyState();
+                }
+            } catch (error) {
+                console.error('加载统计数据失败:', error);
+                showEmptyState();
+            }
+        }
+        
+        // 渲染概览卡片
+        function renderOverview(data) {
+            document.getElementById('avg-health-index').textContent = data.avgHealthIndex || '--';
+            document.getElementById('avg-sleep').textContent = data.avgSleep || '--';
+            document.getElementById('avg-water').textContent = data.avgWater || '--';
+            document.getElementById('exercise-days').textContent = data.exerciseDays || '--';
+            document.getElementById('total-days').textContent = data.totalDays || '--';
+            
+            // 更新进度条
+            const healthIndex = data.avgHealthIndex || 0;
+            const progressBar = document.getElementById('health-index-bar');
+            progressBar.style.width = `${healthIndex}%`;
+            
+            // 根据指数设置颜色
+            if (healthIndex >= 80) {
+                progressBar.style.background = 'linear-gradient(90deg, #10b981, #34d399)';
+            } else if (healthIndex >= 60) {
+                progressBar.style.background = 'linear-gradient(90deg, #f59e0b, #fbbf24)';
+            } else {
+                progressBar.style.background = 'linear-gradient(90deg, #ef4444, #f87171)';
+            }
+        }
+        
+        // 渲染图表
+        function renderChart(trendData) {
+            const ctx = document.getElementById('health-chart').getContext('2d');
+            
+            if (healthChart) {
+                healthChart.destroy();
+            }
+            
+            // 准备数据
+            const labels = trendData.map(d => {
+                const date = new Date(d.record_date);
+                return `${date.getMonth() + 1}/${date.getDate()}`;
+            }).reverse();
+            
+            let datasets = [];
+            
+            if (currentChartType === 'index') {
+                datasets = [{
+                    label: '健康指数',
+                    data: trendData.map(d => {
+                        // 从健康指数历史中获取（这里简化处理）
+                        return calculateIndexFromDaily(d);
+                    }).reverse(),
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }];
+            } else if (currentChartType === 'water') {
+                datasets = [{
+                    label: '喝水 (ml)',
+                    data: trendData.map(d => d.water_total_ml || 0).reverse(),
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }];
+            } else if (currentChartType === 'sleep') {
+                datasets = [{
+                    label: '睡眠 (小时)',
+                    data: trendData.map(d => d.sleep_total_hours || 0).reverse(),
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }];
+            } else if (currentChartType === 'exercise') {
+                datasets = [{
+                    label: '运动 (分钟)',
+                    data: trendData.map(d => d.exercise_total_min || 0).reverse(),
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }];
+            }
+            
+            healthChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 从每日数据计算指数（简化版）
+        function calculateIndexFromDaily(daily) {
+            let score = 0;
+            let count = 0;
+            
+            if (daily.water_total_ml > 0) {
+                score += Math.min(100, (daily.water_total_ml / 1500) * 100) * 0.25;
+                count++;
+            }
+            if (daily.sleep_total_hours > 0) {
+                const sleepScore = daily.sleep_total_hours >= 7 && daily.sleep_total_hours <= 8 ? 95 : 
+                                   daily.sleep_total_hours >= 6 ? 70 : 50;
+                score += sleepScore * 0.25;
+                count++;
+            }
+            if (daily.exercise_total_min > 0) {
+                const exerciseScore = daily.exercise_total_min >= 60 ? 95 : 
+                                      daily.exercise_total_min >= 30 ? 80 : 60;
+                score += exerciseScore * 0.20;
+                count++;
+            }
+            
+            return count > 0 ? Math.round(score / (0.25 * count + 0.20)) : 0;
+        }
+        
+        // 渲染详细数据列表
+        function renderDetailList(data) {
+            const list = document.getElementById('detail-list');
+            
+            list.innerHTML = `
+                <div class="detail-item">
+                    <span class="detail-label"><span class="detail-icon">😴</span>平均心情</span>
+                    <span class="detail-value">${data.avgMood || '--'}/10</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label"><span class="detail-icon">⚡</span>平均精力</span>
+                    <span class="detail-value">${data.avgEnergy || '--'}/10</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label"><span class="detail-icon">📅</span>总记录天数</span>
+                    <span class="detail-value">${data.totalDays || '--'} 天</span>
+                </div>
+            `;
+        }
+        
+        // 显示空状态
+        function showEmptyState() {
+            document.getElementById('overview-grid').innerHTML = `
+                <div class="empty-state" style="grid-column: 1 / -1;">
+                    <div class="empty-state-icon">📊</div>
+                    <p>暂无数据</p>
+                    <p style="font-size: 12px; margin-top: 8px;">开始记录健康数据后，这里会显示统计信息</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

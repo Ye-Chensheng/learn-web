@@ -1,18 +1,21 @@
 {
   "name": "vibe-healing",
-  "version": "1.0.0",
-  "description": "AI 健康陪伴 MVP - 理解你现实处境的健康搭子",
+  "version": "2.0.0",
+  "description": "AI 健康陪伴系统 - SQLite 数据库版本",
   "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js",
-    "dev": "node backend/server.js"
+    "dev": "node backend/server.js",
+    "init-db": "node db/init-db.js"
   },
   "dependencies": {
     "express": "^4.18.2",
     "cors": "^2.8.5",
-    "body-parser": "^1.20.2"
+    "body-parser": "^1.20.2",
+    "sqlite3": "^5.1.7",
+    "chart.js": "^4.4.1"
   },
-  "keywords": ["health", "ai", "companion", "wellness"],
+  "keywords": ["health", "ai", "companion", "wellness", "sqlite"],
   "author": "vibe-healing team",
   "license": "MIT"
 }

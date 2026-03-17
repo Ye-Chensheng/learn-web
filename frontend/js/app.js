@@ -693,7 +693,12 @@ window.switchTab = function(tabName) {
     if (activeBtn) activeBtn.classList.add('active');
     
     if (tabName === 'home') { loadHomeData(); updateCheckInDisplay(); loadHealthIndex(); }
-    else if (tabName === 'stats') loadStatsData();
+    else if (tabName === 'stats') { 
+        // 初始化时间按钮状态
+        document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('stats-btn-7').classList.add('active');
+        loadStatsData(); 
+    }
     else if (tabName === 'profile') { updateUserProfile(); updateBasicStats(); loadHealthIndex(); }
 }
 
@@ -721,6 +726,164 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// ==================== 统计图表功能 ====================
+
+let statsChart = null;
+let currentStatsDays = 7;
+let currentChartType = 'index';
+
+// 设置统计时间范围
+window.setStatsRange = function(days) {
+    currentStatsDays = days;
+    document.querySelectorAll('.time-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.getElementById(`stats-btn-${days}`).classList.add('active');
+    loadStatsData();
+};
+
+// 切换图表类型
+window.switchStatsChart = function(type) {
+    currentChartType = type;
+    document.querySelectorAll('.chart-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.getElementById(`chart-tab-${type}`).classList.add('active');
+    if (statsChart) renderStatsChart(statsChart.data.labels, window.statsTrendData);
+};
+
+// 加载统计数据
+async function loadStatsData() {
+    try {
+        const res = await fetch(`${API_BASE}/stats?user_id=${currentUserId}&days=${currentStatsDays}`);
+        const result = await res.json();
+        
+        if (result.success && result.data) {
+            window.statsTrendData = result.data.trend;
+            renderStatsOverview(result.data);
+            renderStatsChart(result.data.trend);
+            renderStatsDetail(result.data);
+        }
+    } catch (error) {
+        console.error('加载统计数据失败:', error);
+    }
+}
+
+// 渲染统计概览
+function renderStatsOverview(data) {
+    document.getElementById('stats-health-index').textContent = data.avgHealthIndex?.toFixed(1) || '--';
+    document.getElementById('stats-avg-sleep').textContent = data.avgSleep?.toFixed(1) || '--';
+    document.getElementById('stats-avg-water').textContent = data.avgWater?.toFixed(0) || '--';
+    document.getElementById('stats-exercise-days').textContent = data.exerciseDays || '--';
+}
+
+// 渲染统计图表
+function renderStatsChart(trendData) {
+    const ctx = document.getElementById('stats-chart').getContext('2d');
+    
+    if (statsChart) {
+        statsChart.destroy();
+    }
+    
+    const labels = trendData.map(d => {
+        const date = new Date(d.record_date);
+        return `${date.getMonth() + 1}/${date.getDate()}`;
+    }).reverse();
+    
+    let chartData = [];
+    let label = '';
+    let color = '';
+    
+    if (currentChartType === 'index') {
+        label = '健康指数';
+        color = '#87B095';
+        chartData = trendData.map(d => calculateIndexFromDaily(d)).reverse();
+    } else if (currentChartType === 'water') {
+        label = '喝水 (ml)';
+        color = '#3b82f6';
+        chartData = trendData.map(d => d.water_total_ml || 0).reverse();
+    } else if (currentChartType === 'sleep') {
+        label = '睡眠 (小时)';
+        color = '#8b5cf6';
+        chartData = trendData.map(d => d.sleep_total_hours || 0).reverse();
+    } else if (currentChartType === 'exercise') {
+        label = '运动 (分钟)';
+        color = '#f59e0b';
+        chartData = trendData.map(d => d.exercise_total_min || 0).reverse();
+    }
+    
+    statsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{
+                label,
+                data: chartData,
+                borderColor: color,
+                backgroundColor: color.replace(')', ', 0.1)').replace('rgb', 'rgba').replace('#', ''),
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: true, position: 'top' }
+            },
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(0, 0, 0, 0.05)' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+}
+
+// 从每日数据计算指数（简化版）
+function calculateIndexFromDaily(daily) {
+    let score = 0;
+    let count = 0;
+    
+    if (daily.water_total_ml > 0) {
+        score += Math.min(100, (daily.water_total_ml / 1500) * 100) * 0.25;
+        count++;
+    }
+    if (daily.sleep_total_hours > 0) {
+        const sleepScore = daily.sleep_total_hours >= 7 && daily.sleep_total_hours <= 8 ? 95 : 
+                           daily.sleep_total_hours >= 6 ? 70 : 50;
+        score += sleepScore * 0.25;
+        count++;
+    }
+    if (daily.exercise_total_min > 0) {
+        const exerciseScore = daily.exercise_total_min >= 60 ? 95 : 
+                              daily.exercise_total_min >= 30 ? 80 : 60;
+        score += exerciseScore * 0.20;
+        count++;
+    }
+    
+    return count > 0 ? Math.round(score / (0.25 * count + 0.20)) : 0;
+}
+
+// 渲染详细数据
+function renderStatsDetail(data) {
+    const list = document.getElementById('stats-detail-list');
+    
+    list.innerHTML = `
+        <div class="stats-detail-item">
+            <span class="stats-detail-label">📅 记录天数</span>
+            <span class="stats-detail-value">${data.totalDays || '--'} 天</span>
+        </div>
+        <div class="stats-detail-item">
+            <span class="stats-detail-label">😊 平均心情</span>
+            <span class="stats-detail-value">${data.avgMood?.toFixed(1) || '--'}/10</span>
+        </div>
+        <div class="stats-detail-item">
+            <span class="stats-detail-label">⚡ 平均精力</span>
+            <span class="stats-detail-value">${data.avgEnergy?.toFixed(1) || '--'}/10</span>
+        </div>
+    `;
+}
+
 // ==================== 导出 ====================
 
 window.quickRecord = quickRecord;
@@ -736,3 +899,5 @@ window.changeMonth = changeMonth;
 window.selectDate = selectDate;
 window.confirmDateSelection = confirmDateSelection;
 window.backToToday = backToToday;
+window.setStatsRange = setStatsRange;
+window.switchStatsChart = switchStatsChart;
