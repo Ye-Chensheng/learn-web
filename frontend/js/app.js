@@ -792,15 +792,33 @@ function renderStatsChart(trendData) {
         statsChart.destroy();
     }
     
+    // 调试日志
+    console.log('📊 渲染图表，数据:', trendData?.length, '条');
+    if (trendData && trendData.length > 0) {
+        console.log('📊 第一条数据:', trendData[0]);
+    }
+    
+    if (!trendData || trendData.length === 0) {
+        console.warn('⚠️ 没有数据可渲染');
+        return;
+    }
+    
     // 正确解析日期并格式化
     const labels = trendData.map(d => {
         try {
+            if (!d.record_date) return '未知日期';
             const parts = d.record_date.split('-');
-            return `${parseInt(parts[1])}/${parseInt(parts[2])}`;
+            if (parts.length !== 3) return d.record_date;
+            const month = parseInt(parts[1]);
+            const day = parseInt(parts[2]);
+            return `${month}/${day}`;
         } catch (e) {
+            console.error('日期解析失败:', e, d.record_date);
             return d.record_date || '未知日期';
         }
     }).reverse();
+    
+    console.log('📊 日期标签:', labels);
     
     let chartData = [];
     let label = '';
@@ -837,6 +855,8 @@ function renderStatsChart(trendData) {
             return isNaN(val) ? 0 : val;
         }).reverse();
     }
+    
+    console.log('📊 图表数据:', chartData);
     
     statsChart = new Chart(ctx, {
         type: 'line',
