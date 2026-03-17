@@ -749,7 +749,14 @@ window.switchStatsChart = function(type) {
         tab.classList.remove('active');
     });
     document.getElementById(`chart-tab-${type}`).classList.add('active');
-    if (statsChart) renderStatsChart(statsChart.data.labels, window.statsTrendData);
+    
+    // 重新渲染图表（使用已加载的趋势数据）
+    if (window.statsTrendData && window.statsTrendData.length > 0) {
+        renderStatsChart(window.statsTrendData);
+    } else {
+        // 如果数据未加载，重新加载
+        loadStatsData();
+    }
 };
 
 // 加载统计数据
@@ -785,31 +792,50 @@ function renderStatsChart(trendData) {
         statsChart.destroy();
     }
     
+    // 正确解析日期并格式化
     const labels = trendData.map(d => {
-        const date = new Date(d.record_date);
-        return `${date.getMonth() + 1}/${date.getDate()}`;
+        try {
+            const parts = d.record_date.split('-');
+            return `${parseInt(parts[1])}/${parseInt(parts[2])}`;
+        } catch (e) {
+            return d.record_date || '未知日期';
+        }
     }).reverse();
     
     let chartData = [];
     let label = '';
     let color = '';
+    let bgColor = '';
     
     if (currentChartType === 'index') {
         label = '健康指数';
         color = '#87B095';
+        bgColor = 'rgba(135, 176, 149, 0.1)';
         chartData = trendData.map(d => calculateIndexFromDaily(d)).reverse();
     } else if (currentChartType === 'water') {
         label = '喝水 (ml)';
         color = '#3b82f6';
-        chartData = trendData.map(d => d.water_total_ml || 0).reverse();
+        bgColor = 'rgba(59, 130, 246, 0.1)';
+        chartData = trendData.map(d => {
+            const val = parseInt(d.water_total_ml);
+            return isNaN(val) ? 0 : val;
+        }).reverse();
     } else if (currentChartType === 'sleep') {
         label = '睡眠 (小时)';
         color = '#8b5cf6';
-        chartData = trendData.map(d => d.sleep_total_hours || 0).reverse();
+        bgColor = 'rgba(139, 92, 246, 0.1)';
+        chartData = trendData.map(d => {
+            const val = parseFloat(d.sleep_total_hours);
+            return isNaN(val) ? 0 : val;
+        }).reverse();
     } else if (currentChartType === 'exercise') {
         label = '运动 (分钟)';
         color = '#f59e0b';
-        chartData = trendData.map(d => d.exercise_total_min || 0).reverse();
+        bgColor = 'rgba(245, 158, 11, 0.1)';
+        chartData = trendData.map(d => {
+            const val = parseInt(d.exercise_total_min);
+            return isNaN(val) ? 0 : val;
+        }).reverse();
     }
     
     statsChart = new Chart(ctx, {
@@ -820,20 +846,32 @@ function renderStatsChart(trendData) {
                 label,
                 data: chartData,
                 borderColor: color,
-                backgroundColor: color.replace(')', ', 0.1)').replace('rgb', 'rgba').replace('#', ''),
+                backgroundColor: bgColor,
                 tension: 0.4,
-                fill: true
+                fill: true,
+                pointBackgroundColor: color,
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: true, position: 'top' }
+                legend: { display: false }
             },
             scales: {
-                y: { beginAtZero: true, grid: { color: 'rgba(0, 0, 0, 0.05)' } },
-                x: { grid: { display: false } }
+                y: { 
+                    beginAtZero: true, 
+                    grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                    ticks: { font: { size: 11 } }
+                },
+                x: { 
+                    grid: { display: false },
+                    ticks: { font: { size: 11 } }
+                }
             }
         }
     });
