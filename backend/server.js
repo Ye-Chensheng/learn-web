@@ -500,10 +500,14 @@ function generateWeeklySummary(stats) {
     return messages.join('\n');
 }
 
-// ==================== 统计页面路由 ====================
+// ==================== 页面路由 ====================
 
 app.get('/stats', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/pages/stats.html'));
+});
+
+app.get('/select-user.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/select-user.html'));
 });
 
 // ==================== 启动服务器 ====================

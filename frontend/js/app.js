@@ -1,14 +1,23 @@
 /**
- * vibe-healing 前端应用 - v3.1 日期选择优化
+ * vibe-healing 前端应用 - v3.2 用户 ID 支持
  */
 
 const API_BASE = window.location.origin + '/api';
 
-let currentUserId = 1;
+// 从 localStorage 读取用户 ID，如果没有则跳转到选择页面
+let currentUserId = parseInt(localStorage.getItem('vibe_user_id')) || 1;
 let currentUser = null;
 let currentRecordType = null;
 let currentRecordValue = null;
 let selectedTime = null;
+
+// 检查用户 ID，如果没有则跳转到选择页面
+if (!localStorage.getItem('vibe_user_id')) {
+    // 不在选择页面时才跳转
+    if (!window.location.pathname.includes('select-user.html')) {
+        window.location.href = '/select-user.html';
+    }
+}
 
 // 打卡记录存储
 let checkInRecords = {};
