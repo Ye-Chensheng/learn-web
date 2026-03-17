@@ -134,59 +134,55 @@
 
         <!-- 统计页 -->
         <section id="page-stats" class="page">
-            <!-- 时间选择器 -->
-            <div class="time-selector" style="display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto;">
-                <button class="time-btn" onclick="setStatsRange(7)" id="stats-btn-7">7 天</button>
-                <button class="time-btn" onclick="setStatsRange(14)" id="stats-btn-14">14 天</button>
-                <button class="time-btn" onclick="setStatsRange(30)" id="stats-btn-30">30 天</button>
-                <button class="time-btn" onclick="setStatsRange(90)" id="stats-btn-90">90 天</button>
-            </div>
-            
-            <!-- 概览卡片 -->
-            <div class="stats-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px;">
-                <div class="card" style="padding: 16px;">
-                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">健康指数</div>
-                    <div style="font-size: 28px; font-weight: 700; color: var(--primary-color);" id="stats-health-index">--</div>
-                    <div style="font-size: 12px; color: var(--text-secondary);">平均分</div>
+            <div class="card">
+                <div class="card-header">
+                    <h2>📊 数据统计</h2>
                 </div>
-                <div class="card" style="padding: 16px;">
-                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">平均睡眠</div>
-                    <div style="font-size: 28px; font-weight: 700; color: #8b5cf6;" id="stats-avg-sleep">--</div>
-                    <div style="font-size: 12px; color: var(--text-secondary);">小时/天</div>
-                </div>
-                <div class="card" style="padding: 16px;">
-                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">平均喝水</div>
-                    <div style="font-size: 28px; font-weight: 700; color: #3b82f6;" id="stats-avg-water">--</div>
-                    <div style="font-size: 12px; color: var(--text-secondary);">毫升/天</div>
-                </div>
-                <div class="card" style="padding: 16px;">
-                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">运动天数</div>
-                    <div style="font-size: 28px; font-weight: 700; color: #f59e0b;" id="stats-exercise-days">--</div>
-                    <div style="font-size: 12px; color: var(--text-secondary);">天</div>
-                </div>
-            </div>
-            
-            <!-- 图表容器 -->
-            <div class="card" style="padding: 16px; margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <h3 style="font-size: 16px;">📈 趋势图</h3>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="chart-tab active" onclick="switchStatsChart('index')" id="chart-tab-index">综合</button>
-                        <button class="chart-tab" onclick="switchStatsChart('water')" id="chart-tab-water">喝水</button>
-                        <button class="chart-tab" onclick="switchStatsChart('sleep')" id="chart-tab-sleep">睡眠</button>
-                        <button class="chart-tab" onclick="switchStatsChart('exercise')" id="chart-tab-exercise">运动</button>
+                <div class="card-body">
+                    <!-- 时间选择器 -->
+                    <div style="display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto;">
+                        <button class="btn btn-secondary" id="stats-btn-7" onclick="setStatsRange(7)" style="flex:1;">7 天</button>
+                        <button class="btn btn-secondary" id="stats-btn-14" onclick="setStatsRange(14)" style="flex:1;">14 天</button>
+                        <button class="btn btn-secondary" id="stats-btn-30" onclick="setStatsRange(30)" style="flex:1;">30 天</button>
                     </div>
-                </div>
-                <div style="position: relative; height: 250px;">
-                    <canvas id="stats-chart"></canvas>
-                </div>
-            </div>
-            
-            <!-- 详细数据 -->
-            <div class="card" style="padding: 16px;">
-                <h3 style="font-size: 16px; margin-bottom: 16px;">📊 详细数据</h3>
-                <div id="stats-detail-list">
-                    <div style="text-align: center; padding: 20px; color: var(--text-secondary);">加载中...</div>
+                    
+                    <!-- 统计数据 -->
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-icon">💚</span>
+                            <span class="stat-value" id="stats-health-index">--</span>
+                            <span class="stat-label">健康指数</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-icon">😴</span>
+                            <span class="stat-value" id="stats-avg-sleep">--</span>
+                            <span class="stat-label">平均睡眠 (h)</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-icon">💧</span>
+                            <span class="stat-value" id="stats-avg-water">--</span>
+                            <span class="stat-label">平均喝水 (ml)</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-icon">🏃</span>
+                            <span class="stat-value" id="stats-exercise-days">--</span>
+                            <span class="stat-label">运动天数</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 图表 -->
+                    <div style="margin-top: 20px;">
+                        <h3 style="font-size: 14px; margin-bottom: 12px; color: var(--text-secondary);">📈 趋势图</h3>
+                        <div style="position: relative; height: 200px;">
+                            <canvas id="stats-chart"></canvas>
+                        </div>
+                        <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
+                            <button class="btn btn-secondary" id="chart-tab-index" onclick="switchStatsChart('index')" style="flex: 1; min-width: 60px; font-size: 12px; padding: 6px;">综合</button>
+                            <button class="btn btn-secondary" id="chart-tab-water" onclick="switchStatsChart('water')" style="flex: 1; min-width: 60px; font-size: 12px; padding: 6px;">喝水</button>
+                            <button class="btn btn-secondary" id="chart-tab-sleep" onclick="switchStatsChart('sleep')" style="flex: 1; min-width: 60px; font-size: 12px; padding: 6px;">睡眠</button>
+                            <button class="btn btn-secondary" id="chart-tab-exercise" onclick="switchStatsChart('exercise')" style="flex: 1; min-width: 60px; font-size: 12px; padding: 6px;">运动</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>

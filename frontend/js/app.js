@@ -693,13 +693,133 @@ window.switchTab = function(tabName) {
     if (activeBtn) activeBtn.classList.add('active');
     
     if (tabName === 'home') { loadHomeData(); updateCheckInDisplay(); loadHealthIndex(); }
-    else if (tabName === 'stats') { 
-        // 初始化时间按钮状态
-        document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+    else if (tabName === 'stats') {
+        // 初始化统计页
+        document.querySelectorAll('#stats-btn-7, #stats-btn-14, #stats-btn-30').forEach(btn => btn.classList.remove('active'));
         document.getElementById('stats-btn-7').classList.add('active');
-        loadStatsData(); 
+        loadStatsData();
     }
     else if (tabName === 'profile') { updateUserProfile(); updateBasicStats(); loadHealthIndex(); }
+}
+
+// ==================== 统计图表功能 ====================
+
+let statsChart = null;
+let currentStatsDays = 7;
+let currentChartType = 'index';
+
+window.setStatsRange = function(days) {
+    currentStatsDays = days;
+    document.querySelectorAll('#stats-btn-7, #stats-btn-14, #stats-btn-30').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`stats-btn-${days}`).classList.add('active');
+    loadStatsData();
+};
+
+window.switchStatsChart = function(type) {
+    currentChartType = type;
+    document.querySelectorAll('#chart-tab-index, #chart-tab-water, #chart-tab-sleep, #chart-tab-exercise').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`chart-tab-${type}`).classList.add('active');
+    if (window.statsTrendData && window.statsTrendData.length > 0) {
+        renderStatsChart(window.statsTrendData);
+    }
+};
+
+async function loadStatsData() {
+    try {
+        const res = await fetch(`${API_BASE}/stats?user_id=${currentUserId}&days=${currentStatsDays}`);
+        const result = await res.json();
+        
+        if (result.success && result.data) {
+            window.statsTrendData = result.data.trend;
+            // 更新统计显示
+            document.getElementById('stats-health-index').textContent = result.data.avgHealthIndex?.toFixed(1) || '--';
+            document.getElementById('stats-avg-sleep').textContent = result.data.avgSleep?.toFixed(1) || '--';
+            document.getElementById('stats-avg-water').textContent = result.data.avgWater?.toFixed(0) || '--';
+            document.getElementById('stats-exercise-days').textContent = result.data.exerciseDays || '--';
+            renderStatsChart(result.data.trend);
+        }
+    } catch (error) {
+        console.error('加载统计数据失败:', error);
+    }
+}
+
+function renderStatsChart(trendData) {
+    const ctx = document.getElementById('stats-chart').getContext('2d');
+    
+    if (statsChart) statsChart.destroy();
+    
+    if (!trendData || trendData.length === 0) return;
+    
+    const labels = trendData.map(d => {
+        try {
+            const parts = d.record_date.split('-');
+            return `${parseInt(parts[1])}/${parseInt(parts[2])}`;
+        } catch (e) { return d.record_date; }
+    }).reverse();
+    
+    let chartData = [], label = '', color = '';
+    
+    if (currentChartType === 'index') {
+        label = '健康指数';
+        color = '#87B095';
+        chartData = trendData.map(d => calculateIndexFromDaily(d)).reverse();
+    } else if (currentChartType === 'water') {
+        label = '喝水 (ml)';
+        color = '#4A9FB5';
+        chartData = trendData.map(d => parseInt(d.water_total_ml) || 0).reverse();
+    } else if (currentChartType === 'sleep') {
+        label = '睡眠 (h)';
+        color = '#9B6FB8';
+        chartData = trendData.map(d => parseFloat(d.sleep_total_hours) || 0).reverse();
+    } else if (currentChartType === 'exercise') {
+        label = '运动 (min)';
+        color = '#5CB890';
+        chartData = trendData.map(d => parseInt(d.exercise_total_min) || 0).reverse();
+    }
+    
+    statsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{
+                label,
+                data: chartData,
+                borderColor: color,
+                backgroundColor: color + '20',
+                tension: 0.4,
+                fill: true,
+                pointRadius: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+}
+
+function calculateIndexFromDaily(daily) {
+    let score = 0, count = 0;
+    if (daily.water_total_ml > 0) {
+        score += Math.min(100, (daily.water_total_ml / 1500) * 100) * 0.25;
+        count++;
+    }
+    if (daily.sleep_total_hours > 0) {
+        const s = daily.sleep_total_hours >= 7 && daily.sleep_total_hours <= 8 ? 95 : daily.sleep_total_hours >= 6 ? 70 : 50;
+        score += s * 0.25;
+        count++;
+    }
+    if (daily.exercise_total_min > 0) {
+        const e = daily.exercise_total_min >= 60 ? 95 : daily.exercise_total_min >= 30 ? 80 : 60;
+        score += e * 0.20;
+        count++;
+    }
+    return count > 0 ? Math.round(score / (0.25 * count + 0.20)) : 0;
 }
 
 // ==================== 工具函数 ====================
@@ -726,222 +846,6 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// ==================== 统计图表功能 ====================
-
-let statsChart = null;
-let currentStatsDays = 7;
-let currentChartType = 'index';
-
-// 设置统计时间范围
-window.setStatsRange = function(days) {
-    currentStatsDays = days;
-    document.querySelectorAll('.time-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    document.getElementById(`stats-btn-${days}`).classList.add('active');
-    loadStatsData();
-};
-
-// 切换图表类型
-window.switchStatsChart = function(type) {
-    currentChartType = type;
-    document.querySelectorAll('.chart-tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    document.getElementById(`chart-tab-${type}`).classList.add('active');
-    
-    // 重新渲染图表（使用已加载的趋势数据）
-    if (window.statsTrendData && window.statsTrendData.length > 0) {
-        renderStatsChart(window.statsTrendData);
-    } else {
-        // 如果数据未加载，重新加载
-        loadStatsData();
-    }
-};
-
-// 加载统计数据
-async function loadStatsData() {
-    try {
-        const res = await fetch(`${API_BASE}/stats?user_id=${currentUserId}&days=${currentStatsDays}`);
-        const result = await res.json();
-        
-        if (result.success && result.data) {
-            window.statsTrendData = result.data.trend;
-            renderStatsOverview(result.data);
-            renderStatsChart(result.data.trend);
-            renderStatsDetail(result.data);
-        }
-    } catch (error) {
-        console.error('加载统计数据失败:', error);
-    }
-}
-
-// 渲染统计概览
-function renderStatsOverview(data) {
-    document.getElementById('stats-health-index').textContent = data.avgHealthIndex?.toFixed(1) || '--';
-    document.getElementById('stats-avg-sleep').textContent = data.avgSleep?.toFixed(1) || '--';
-    document.getElementById('stats-avg-water').textContent = data.avgWater?.toFixed(0) || '--';
-    document.getElementById('stats-exercise-days').textContent = data.exerciseDays || '--';
-}
-
-// 渲染统计图表
-function renderStatsChart(trendData) {
-    const ctx = document.getElementById('stats-chart').getContext('2d');
-    
-    if (statsChart) {
-        statsChart.destroy();
-    }
-    
-    // 调试日志
-    console.log('📊 渲染图表，数据:', trendData?.length, '条');
-    if (trendData && trendData.length > 0) {
-        console.log('📊 第一条数据:', trendData[0]);
-    }
-    
-    if (!trendData || trendData.length === 0) {
-        console.warn('⚠️ 没有数据可渲染');
-        return;
-    }
-    
-    // 正确解析日期并格式化
-    const labels = trendData.map(d => {
-        try {
-            if (!d.record_date) return '未知日期';
-            const parts = d.record_date.split('-');
-            if (parts.length !== 3) return d.record_date;
-            const month = parseInt(parts[1]);
-            const day = parseInt(parts[2]);
-            return `${month}/${day}`;
-        } catch (e) {
-            console.error('日期解析失败:', e, d.record_date);
-            return d.record_date || '未知日期';
-        }
-    }).reverse();
-    
-    console.log('📊 日期标签:', labels);
-    
-    let chartData = [];
-    let label = '';
-    let color = '';
-    let bgColor = '';
-    
-    if (currentChartType === 'index') {
-        label = '健康指数';
-        color = '#87B095';
-        bgColor = 'rgba(135, 176, 149, 0.1)';
-        chartData = trendData.map(d => calculateIndexFromDaily(d)).reverse();
-    } else if (currentChartType === 'water') {
-        label = '喝水 (ml)';
-        color = '#3b82f6';
-        bgColor = 'rgba(59, 130, 246, 0.1)';
-        chartData = trendData.map(d => {
-            const val = parseInt(d.water_total_ml);
-            return isNaN(val) ? 0 : val;
-        }).reverse();
-    } else if (currentChartType === 'sleep') {
-        label = '睡眠 (小时)';
-        color = '#8b5cf6';
-        bgColor = 'rgba(139, 92, 246, 0.1)';
-        chartData = trendData.map(d => {
-            const val = parseFloat(d.sleep_total_hours);
-            return isNaN(val) ? 0 : val;
-        }).reverse();
-    } else if (currentChartType === 'exercise') {
-        label = '运动 (分钟)';
-        color = '#f59e0b';
-        bgColor = 'rgba(245, 158, 11, 0.1)';
-        chartData = trendData.map(d => {
-            const val = parseInt(d.exercise_total_min);
-            return isNaN(val) ? 0 : val;
-        }).reverse();
-    }
-    
-    console.log('📊 图表数据:', chartData);
-    
-    statsChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels,
-            datasets: [{
-                label,
-                data: chartData,
-                borderColor: color,
-                backgroundColor: bgColor,
-                tension: 0.4,
-                fill: true,
-                pointBackgroundColor: color,
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: { 
-                    beginAtZero: true, 
-                    grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                    ticks: { font: { size: 11 } }
-                },
-                x: { 
-                    grid: { display: false },
-                    ticks: { font: { size: 11 } }
-                }
-            }
-        }
-    });
-}
-
-// 从每日数据计算指数（简化版）
-function calculateIndexFromDaily(daily) {
-    let score = 0;
-    let count = 0;
-    
-    if (daily.water_total_ml > 0) {
-        score += Math.min(100, (daily.water_total_ml / 1500) * 100) * 0.25;
-        count++;
-    }
-    if (daily.sleep_total_hours > 0) {
-        const sleepScore = daily.sleep_total_hours >= 7 && daily.sleep_total_hours <= 8 ? 95 : 
-                           daily.sleep_total_hours >= 6 ? 70 : 50;
-        score += sleepScore * 0.25;
-        count++;
-    }
-    if (daily.exercise_total_min > 0) {
-        const exerciseScore = daily.exercise_total_min >= 60 ? 95 : 
-                              daily.exercise_total_min >= 30 ? 80 : 60;
-        score += exerciseScore * 0.20;
-        count++;
-    }
-    
-    return count > 0 ? Math.round(score / (0.25 * count + 0.20)) : 0;
-}
-
-// 渲染详细数据
-function renderStatsDetail(data) {
-    const list = document.getElementById('stats-detail-list');
-    
-    list.innerHTML = `
-        <div class="stats-detail-item">
-            <span class="stats-detail-label">📅 记录天数</span>
-            <span class="stats-detail-value">${data.totalDays || '--'} 天</span>
-        </div>
-        <div class="stats-detail-item">
-            <span class="stats-detail-label">😊 平均心情</span>
-            <span class="stats-detail-value">${data.avgMood?.toFixed(1) || '--'}/10</span>
-        </div>
-        <div class="stats-detail-item">
-            <span class="stats-detail-label">⚡ 平均精力</span>
-            <span class="stats-detail-value">${data.avgEnergy?.toFixed(1) || '--'}/10</span>
-        </div>
-    `;
-}
-
 // ==================== 导出 ====================
 
 window.quickRecord = quickRecord;
@@ -957,5 +861,3 @@ window.changeMonth = changeMonth;
 window.selectDate = selectDate;
 window.confirmDateSelection = confirmDateSelection;
 window.backToToday = backToToday;
-window.setStatsRange = setStatsRange;
-window.switchStatsChart = switchStatsChart;
