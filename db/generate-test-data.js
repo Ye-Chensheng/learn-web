@@ -248,6 +248,16 @@ function generateUserTags() {
     });
 }
 
+// 统计数据的辅助函数（Promise 化）
+function countRecords(table, whereClause) {
+    return new Promise((resolve, reject) => {
+        db.get(`SELECT COUNT(*) as count FROM ${table} WHERE ${whereClause}`, (err, row) => {
+            if (err) reject(err);
+            else resolve(row.count);
+        });
+    });
+}
+
 // 主函数
 async function main() {
     try {
@@ -262,34 +272,30 @@ async function main() {
         await generateUserTags();
         
         console.log('\n✅ 测试数据生成完成！');
+        
+        // 等待数据库写入完成
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         console.log('\n📊 数据统计:');
         
-        // 统计生成的数据
-        db.get('SELECT COUNT(*) as count FROM daily_health_records WHERE user_id = ?', [TEST_USER_ID], (err, row) => {
-            console.log(`   - 每日健康记录：${row.count} 条`);
-        });
+        // 统计生成的数据（使用 Promise 确保完成）
+        const stats = await Promise.all([
+            countRecords('daily_health_records', `user_id = ${TEST_USER_ID}`),
+            countRecords('water_records', `user_id = ${TEST_USER_ID}`),
+            countRecords('food_records', `user_id = ${TEST_USER_ID}`),
+            countRecords('sleep_records', `user_id = ${TEST_USER_ID}`),
+            countRecords('exercise_records', `user_id = ${TEST_USER_ID}`),
+            countRecords('health_index_history', `user_id = ${TEST_USER_ID}`)
+        ]);
         
-        db.get('SELECT COUNT(*) as count FROM water_records WHERE user_id = ?', [TEST_USER_ID], (err, row) => {
-            console.log(`   - 喝水记录：${row.count} 条`);
-        });
+        console.log(`   - 每日健康记录：${stats[0]} 条`);
+        console.log(`   - 喝水记录：${stats[1]} 条`);
+        console.log(`   - 饮食记录：${stats[2]} 条`);
+        console.log(`   - 睡眠记录：${stats[3]} 条`);
+        console.log(`   - 运动记录：${stats[4]} 条`);
+        console.log(`   - 健康指数记录：${stats[5]} 条`);
         
-        db.get('SELECT COUNT(*) as count FROM food_records WHERE user_id = ?', [TEST_USER_ID], (err, row) => {
-            console.log(`   - 饮食记录：${row.count} 条`);
-        });
-        
-        db.get('SELECT COUNT(*) as count FROM sleep_records WHERE user_id = ?', [TEST_USER_ID], (err, row) => {
-            console.log(`   - 睡眠记录：${row.count} 条`);
-        });
-        
-        db.get('SELECT COUNT(*) as count FROM exercise_records WHERE user_id = ?', [TEST_USER_ID], (err, row) => {
-            console.log(`   - 运动记录：${row.count} 条`);
-        });
-        
-        db.get('SELECT COUNT(*) as count FROM health_index_history WHERE user_id = ?', [TEST_USER_ID], (err, row) => {
-            console.log(`   - 健康指数记录：${row.count} 条`);
-        });
-        
-        setTimeout(() => db.close(), 1000);
+        db.close();
         
     } catch (error) {
         console.error('❌ 生成失败:', error);
