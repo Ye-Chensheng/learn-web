@@ -1,8 +1,9 @@
 /**
- * vibe-healing 前端应用 - v3.3 用户 ID 体系修复
+ * vibe-healing 前端应用 - v3.4 用户 ID 体系 + 缓存问题修复
  */
 
 const API_BASE = window.location.origin + '/api';
+const APP_VERSION = '2026031822'; // 缓存版本号
 
 // 从 localStorage 读取用户 ID，支持 URL 参数覆盖
 const urlParams = new URLSearchParams(window.location.search);
@@ -11,6 +12,18 @@ let currentUserId = parseInt(urlParams.get('user_id')) || parseInt(localStorage.
 // 如果通过 URL 参数指定了用户 ID，保存到 localStorage
 if (urlParams.get('user_id')) {
     localStorage.setItem('vibe_user_id', urlParams.get('user_id'));
+}
+
+// 缓存版本检测 - 如果版本变化则清空旧缓存
+const storedVersion = localStorage.getItem('vibe_app_version');
+if (storedVersion !== APP_VERSION) {
+    console.log('🔄 检测到应用版本更新，清空旧缓存');
+    localStorage.setItem('vibe_app_version', APP_VERSION);
+    // 保留用户 ID，只清除数据缓存
+    const savedUserId = localStorage.getItem('vibe_user_id');
+    localStorage.clear();
+    localStorage.setItem('vibe_app_version', APP_VERSION);
+    if (savedUserId) localStorage.setItem('vibe_user_id', savedUserId);
 }
 
 let currentUser = null;
@@ -722,6 +735,9 @@ window.switchTab = function(tabName) {
         // 初始化统计页
         document.querySelectorAll('#stats-btn-7, #stats-btn-14, #stats-btn-30').forEach(btn => btn.classList.remove('active'));
         document.getElementById('stats-btn-7').classList.add('active');
+        // 更新用户 ID 显示
+        const statsUserIdEl = document.getElementById('stats-user-id');
+        if (statsUserIdEl) statsUserIdEl.textContent = currentUserId;
         loadStatsData();
     }
     else if (tabName === 'profile') { updateUserProfile(); updateBasicStats(); loadHealthIndex(); }
@@ -744,6 +760,12 @@ window.setStatsRange = function(days) {
     loadStatsData();
 };
 
+window.refreshStats = function() {
+    console.log('🔄 手动刷新统计数据，用户 ID:', currentUserId);
+    showToast('🔄 刷新中...', 'success');
+    loadStatsData();
+};
+
 window.switchStatsChart = function(type) {
     currentChartType = type;
     document.querySelectorAll('#chart-tab-index, #chart-tab-water, #chart-tab-sleep, #chart-tab-exercise').forEach(btn => btn.classList.remove('active'));
@@ -756,22 +778,35 @@ window.switchStatsChart = function(type) {
 async function loadStatsData() {
     try {
         console.log('📊 加载统计数据，用户 ID:', currentUserId, '天数:', currentStatsDays);
-        const res = await fetch(`${API_BASE}/stats?user_id=${currentUserId}&days=${currentStatsDays}`);
-        const result = await res.json();
-        console.log('📊 API 返回结果:', result);
         
-        if (result.success && result.data) {
-            window.statsTrendData = result.data.trend;
+        // 并行加载统计数据和健康指数历史
+        const [statsRes, historyRes] = await Promise.all([
+            fetch(`${API_BASE}/stats?user_id=${currentUserId}&days=${currentStatsDays}`),
+            fetch(`${API_BASE}/health/history?user_id=${currentUserId}&days=${currentStatsDays}`)
+        ]);
+        
+        const statsResult = await statsRes.json();
+        const historyResult = await historyRes.json();
+        
+        console.log('📊 API 返回结果:', statsResult);
+        console.log('📊 健康指数历史:', historyResult);
+        
+        if (statsResult.success && statsResult.data) {
+            window.statsTrendData = statsResult.data.trend;
+            window.healthIndexHistory = historyResult.success ? historyResult.data : [];
+            
             // 更新统计显示
-            document.getElementById('stats-health-index').textContent = result.data.avgHealthIndex?.toFixed(1) || '--';
-            document.getElementById('stats-avg-sleep').textContent = result.data.avgSleep?.toFixed(1) || '--';
-            document.getElementById('stats-avg-water').textContent = result.data.avgWater?.toFixed(0) || '--';
-            document.getElementById('stats-exercise-days').textContent = result.data.exerciseDays || '--';
-            console.log('📊 更新显示：健康指数', result.data.avgHealthIndex, '喝水', result.data.avgWater, '运动天数', result.data.exerciseDays);
-            renderStatsChart(result.data.trend);
+            document.getElementById('stats-health-index').textContent = statsResult.data.avgHealthIndex?.toFixed(1) || '--';
+            document.getElementById('stats-avg-sleep').textContent = statsResult.data.avgSleep?.toFixed(1) || '--';
+            document.getElementById('stats-avg-water').textContent = statsResult.data.avgWater?.toFixed(0) || '--';
+            document.getElementById('stats-exercise-days').textContent = statsResult.data.exerciseDays || '--';
+            console.log('📊 更新显示：健康指数', statsResult.data.avgHealthIndex, '喝水', statsResult.data.avgWater, '运动天数', statsResult.data.exerciseDays);
+            
+            renderStatsChart(statsResult.data.trend);
         }
     } catch (error) {
         console.error('加载统计数据失败:', error);
+        showToast('❌ 加载失败，请刷新重试', 'error');
     }
 }
 
@@ -794,7 +829,18 @@ function renderStatsChart(trendData) {
     if (currentChartType === 'index') {
         label = '健康指数';
         color = '#87B095';
-        chartData = trendData.map(d => calculateIndexFromDaily(d)).reverse();
+        // 使用真实健康指数历史数据（来自 health_index_history 表）
+        if (window.healthIndexHistory && window.healthIndexHistory.length > 0) {
+            // 按日期映射健康指数
+            const indexMap = {};
+            window.healthIndexHistory.forEach(h => {
+                indexMap[h.calc_date] = h.final_index;
+            });
+            chartData = trendData.map(d => indexMap[d.record_date] || 0).reverse();
+            console.log('📊 使用真实健康指数历史数据:', chartData);
+        } else {
+            chartData = trendData.map(d => calculateIndexFromDaily(d)).reverse();
+        }
     } else if (currentChartType === 'water') {
         label = '喝水 (ml)';
         color = '#4A9FB5';

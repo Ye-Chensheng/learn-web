@@ -136,7 +136,13 @@
         <section id="page-stats" class="page">
             <div class="card">
                 <div class="card-header">
-                    <h2>📊 数据统计</h2>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h2>📊 数据统计</h2>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span style="font-size: 12px; color: var(--text-secondary);">用户：<strong id="stats-user-id">--</strong></span>
+                            <button class="btn btn-secondary" onclick="refreshStats()" style="padding: 4px 8px; font-size: 12px;" title="刷新数据">🔄</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body">
                     <!-- 时间选择器 -->
@@ -297,6 +303,6 @@
         </div>
     </div>
 
-    <script src="/js/app.js?v=2026031723"></script>
+    <script src="/js/app.js?v=2026031822"></script>
 </body>
 </html>
