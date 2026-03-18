@@ -170,8 +170,48 @@ function generateHealthData() {
                 }
             }
             
-            console.log('✅ 30 天健康数据已生成');
-            resolve();
+            // 等待写入完成后更新每日汇总
+            setTimeout(() => {
+                // 更新每日汇总数据
+                for (let i = 29; i >= 0; i--) {
+                    const date = getDateDaysAgo(i);
+                    
+                    // 计算喝水总量
+                    db.get('SELECT SUM(amount_ml) as total FROM water_records WHERE user_id=? AND record_date=?', 
+                        [TEST_USER_ID, date], (err, row) => {
+                            const waterTotal = row?.total || 0;
+                            db.run('UPDATE daily_health_records SET water_total_ml=? WHERE user_id=? AND record_date=?',
+                                [waterTotal, TEST_USER_ID, date]);
+                        });
+                    
+                    // 计算睡眠总量
+                    db.get('SELECT SUM(sleep_hours) as total FROM sleep_records WHERE user_id=? AND record_date=?', 
+                        [TEST_USER_ID, date], (err, row) => {
+                            const sleepTotal = row?.total || 0;
+                            db.run('UPDATE daily_health_records SET sleep_total_hours=? WHERE user_id=? AND record_date=?',
+                                [sleepTotal, TEST_USER_ID, date]);
+                        });
+                    
+                    // 计算运动总量
+                    db.get('SELECT SUM(duration_min) as total FROM exercise_records WHERE user_id=? AND record_date=?', 
+                        [TEST_USER_ID, date], (err, row) => {
+                            const exerciseTotal = row?.total || 0;
+                            db.run('UPDATE daily_health_records SET exercise_total_min=? WHERE user_id=? AND record_date=?',
+                                [exerciseTotal, TEST_USER_ID, date]);
+                        });
+                    
+                    // 计算饮食次数
+                    db.get('SELECT COUNT(*) as count FROM food_records WHERE user_id=? AND record_date=?', 
+                        [TEST_USER_ID, date], (err, row) => {
+                            const foodCount = row?.count || 0;
+                            db.run('UPDATE daily_health_records SET food_count=? WHERE user_id=? AND record_date=?',
+                                [foodCount, TEST_USER_ID, date]);
+                        });
+                }
+                
+                console.log('✅ 30 天健康数据已生成');
+                resolve();
+            }, 500);
         });
     });
 }
